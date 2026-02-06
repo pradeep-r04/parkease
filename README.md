@@ -50,7 +50,7 @@ ParkEase is a web-based application that allows users to pre-book parking slots 
 	<a href="https://www.instagram.com/in/whypradeeep/">
     <img src="https://img.shields.io/badge/Instagram-F72D3B?style=for-the-badge&logo=instagram&logoColor=white"/>
   </a>
-	<a href="https://www.x.com/in/altpradeep/">
+	<a href="https://x.com/altpradeep/">
     <img src="https://img.shields.io/badge/X-000000?style=for-the-badge&logo=x&logoColor=white"/>
   </a>
 </p>
