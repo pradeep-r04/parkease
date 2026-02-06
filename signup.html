@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ParkEase | Sign Up</title>
+  <link rel="icon" href="logo.png" type="image/icon type">
+
+  <!-- Google Font -->
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+
+  <!-- Font Awesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+  <!-- CSS -->
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- navbar -->
+   <nav class="top-navbar">
+  <div class="nav-left">
+    <h2>ParkEase</h2>
+  </div>
+
+  <ul class="nav-links">
+    <li><a href="dashboard.html">Dashboard</a></li>
+    <li>Parking Slots</li>
+    <li><a href="bookings.html">Bookings</a></li>
+    <li>Users</li>
+    <li>Reports</li>
+    <li class="logout" onclick="logout()">Logout</li>
+  </ul>
+</nav>
+<button class="dark-toggle" onclick="toggleDarkMode()">🌙</button>
+
+  <div class="login-wrapper" script="padding-top:30px">
+    <div class="login-container glass">
+
+      <!-- LEFT IMAGE / INFO SECTION -->
+      <div class="login-left image-section">
+        <img src="pic1.jpeg" alt="Parking Illustration">
+        <h1>Park Smarter 🚗</h1>
+        <p>
+          Join ParkEase and experience stress-free parking.
+          Book slots, manage vehicles, and save time.
+        </p>
+
+        <div class="features">
+          <span>🔐 Secure</span>
+          <span>⚡ Fast</span>
+          <span>📍 Smart</span>
+        </div>
+      </div>
+
+      <!-- RIGHT FORM SECTION -->
+      <div class="login-right">
+        <div class="card">
+          <h2>Create Your Account</h2>
+          <p class="subtitle">It takes less than a minute</p>
+
+          <div class="input-group">
+            <i class="fa fa-user"></i>
+            <input type="text" id="name" placeholder="Full Name" required>
+          </div>
+
+          <div class="input-group">
+            <i class="fa fa-envelope"></i>
+            <input type="email" id="email" placeholder="Email Address" required>
+          </div>
+
+          <div class="input-group">
+            <i class="fa fa-phone"></i>
+            <input type="tel" id="phone" placeholder="Phone Number" required>
+          </div>
+
+          <div class="input-group">
+            <i class="fa fa-car"></i>
+            <input type="text" id="vehicle" placeholder="Vehicle Number" required>
+          </div>
+
+          <div class="input-group">
+  <i class="fa fa-lock"></i>
+  <input type="password" id="password" placeholder="Password" oninput="checkStrength()" required>
+</div>
+
+<div class="strength-meter">
+  <div id="strength-bar"></div>
+</div>
+<p id="strength-text"></p>
+
+
+          <div class="input-group">
+            <i class="fa fa-lock"></i>
+            <input type="password" id="confirmPassword" placeholder="Confirm Password" required>
+          </div>
+
+          <button class="btn" onclick="register()">
+            Create Account
+          </button>
+
+          <div class="link">
+            Already registered?
+            <a href="index.html">Login here</a>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+<footer class="footer">
+  <div class="footer-container">
+
+    <!-- Brand -->
+    <div class="footer-brand">
+      <h2>ParkEase</h2>
+      <p>Smart, secure & hassle-free parking management system.</p>
+    </div>
+
+    <!-- Quick Links -->
+    <div class="footer-links">
+      <h4>Quick Links</h4>
+      <ul>
+        <li>Dashboard</li>
+        <li>Parking Slots</li>
+        <li><a href="bookings.html">Bookings</a></li>
+        <li>Reports</li>
+      </ul>
+    </div>
+
+    <!-- Support -->
+    <div class="footer-links">
+      <h4>Support</h4>
+      <ul>
+        <li>Help Center</li>
+        <li>Terms & Conditions</li>
+        <li>Privacy Policy</li>
+        <li>Contact Us</li>
+      </ul>
+    </div>
+
+    <!-- Social -->
+    <div class="footer-social">
+      <h4>Connect With Us</h4>
+      <div class="social-icons">
+        <a href="https://www.linkedin.com/in/pradeep-singh4/"><i class="fab fa-linkedin"></i></a>
+        <a href="https://github.com/pradeep-r04"><i class="fab fa-github"></i></a>
+        <a href="https://x.com/altpradeep"><i class="fab fa-twitter"></i></a>
+        <a href="https://www.instagram.com/whypradeeep/"><i class="fab fa-instagram"></i></a>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="footer-bottom">
+    © 2026 ParkEase. All rights reserved.
+  </div>
+</footer>
+
+  <script src="script.js"></script>
+</body>
+</html>

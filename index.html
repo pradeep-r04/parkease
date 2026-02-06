@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ParkEase | Login</title>
+
+  <link rel="icon" href="logo.png" type="image/icon type">
+
+  <!-- Google Font -->
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+  <!-- CSS -->
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- 🌐 NAVBAR -->
+<nav class="top-navbar">
+  <div class="nav-left">
+    <h2>ParkEase</h2>
+  </div>
+
+  <ul class="nav-links">
+   <li><a href="dashboard.html">Dashboard</a></li>
+    <li>Parking Slots</li>
+    <li><a href="bookings.html">Bookings</a></li>
+    <li>Users</li>
+    <li>Reports</li>
+    <li class="logout" onclick="logout()">Logout</li>
+  </ul>
+</nav>
+
+<!-- 🔐 LOGIN SECTION -->
+<div class="login-wrapper with-navbar">
+  <div class="login-container animate-fade">
+
+    <!-- LEFT INFO -->
+    <div class="login-left">
+      <h1>Welcome Back 👋</h1>
+      <p>
+        Log in to manage your parking slots, bookings,
+        and real-time availability with ease.
+      </p>
+
+      <div class="login-features">
+        <span>🔐 Secure</span>
+        <span>⚡ Real-Time</span>
+        <span>🚗 Smart Parking</span>
+      </div>
+    </div>
+
+    <!-- RIGHT FORM -->
+    <div class="login-right">
+      <div class="card slide-up">
+        <h2>Login to your account</h2>
+        <p class="subtitle">Glad to see you again!</p>
+
+        <div class="input-group">
+          <i class="fa fa-envelope"></i>
+          <input type="email" id="email" placeholder="Email Address" required>
+        </div>
+
+        <div class="input-group">
+          <i class="fa fa-lock"></i>
+          <input type="password" id="password" placeholder="Password" required>
+        </div>
+
+        <button class="btn" onclick="login()">Login</button>
+
+        <div class="link">
+          <a href="#" onclick="forgotPassword()">Forgot Password?</a>
+        </div>
+
+        <div class="link">
+          Don’t have an account?
+          <a href="signup.html">Sign up</a>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+<!-- 🌙 FOOTER -->
+<footer class="footer">
+  <div class="footer-container">
+
+    <!-- Brand -->
+    <div class="footer-brand">
+      <h2>ParkEase</h2>
+      <p>Smart, secure & hassle-free parking management system.</p>
+    </div>
+
+    <!-- Quick Links -->
+    <div class="footer-links">
+      <h4>Quick Links</h4>
+      <ul>
+        <li>Dashboard</li>
+        <li>Parking Slots</li>
+        <li><a href="bookings.html">Bookings</a></li>
+        <li>Reports</li>
+      </ul>
+    </div>
+
+    <!-- Support -->
+    <div class="footer-links">
+      <h4>Support</h4>
+      <ul>
+        <li>Help Center</li>
+        <li>Terms & Conditions</li>
+        <li>Privacy Policy</li>
+        <li>Contact Us</li>
+      </ul>
+    </div>
+
+    <!-- Social -->
+    <div class="footer-social">
+      <h4>Connect With Us</h4>
+      <div class="social-icons">
+        <a href="https://www.linkedin.com/in/pradeep-singh4/"><i class="fab fa-linkedin"></i></a>
+        <a href="https://github.com/pradeep-r04"><i class="fab fa-github"></i></a>
+        <a href="https://x.com/altpradeep"><i class="fab fa-twitter"></i></a>
+        <a href="https://www.instagram.com/whypradeeep/"><i class="fab fa-instagram"></i></a>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="footer-bottom">
+    © 2026 ParkEase. All rights reserved.
+  </div>
+</footer>
+
+
+
+<script src="script.js"></script>
+</body>
+</html>

@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>ParkEase | Dashboard</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" href="logo.png" type="image/icon type">
+
+  <!-- Google Font -->
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+
+  <!-- CSS -->
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="dashboard-page">
+
+<div class="dashboard-layout">
+
+  <!-- SIDEBAR -->
+ <nav class="top-navbar">
+  <div class="nav-left">
+    <h2>ParkEase</h2>
+  </div>
+
+  <ul class="nav-links">
+    <li><a href="dashboard.html">Dashboard</a></li>
+    <li>Parking Slots</li>
+    <li><a href="bookings.html">Bookings</a></li>
+    <li>Users</li>
+    <li>Reports</li>
+    <li class="logout" onclick="logout()">Logout</li>
+  </ul>
+</nav>
+
+  <!-- MAIN CONTENT -->
+  <main class="main-content-parking">
+
+  <div class="overlay"></div>
+
+  <div class="content animate-fade">
+
+    <div class="header-row">
+      <h1>Parking Dashboard 🚗</h1>
+      <span class="live-badge">● Live Status</span>
+    </div>
+
+    <p class="subtitle">
+      Smart, secure & real-time parking management
+    </p>
+
+    <!-- STATS -->
+    <div class="stats">
+
+      <div class="stat-card pulse">
+        <h3>Total Slots</h3>
+        <p>120</p>
+        <span class="stat-info">Capacity</span>
+      </div>
+
+      <div class="stat-card available">
+        <h3>Available</h3>
+        <p>45</p>
+        <span class="stat-info">Free slots</span>
+      </div>
+
+      <div class="stat-card occupied">
+        <h3>Occupied</h3>
+        <p>75</p>
+        <span class="stat-info">Currently parked</span>
+      </div>
+
+      <div class="stat-card">
+        <h3>Today’s Bookings</h3>
+        <p>38</p>
+        <span class="stat-info">Last 24 hrs</span>
+      </div>
+
+    </div>
+
+    <!-- EXTRA INFO ROW -->
+    <div class="extra-section">
+
+      <!-- PARKING STATUS -->
+      <div class="info-card slide-up">
+        <h3>Parking Status</h3>
+        <div class="progress-bar">
+          <div class="progress-fill"></div>
+        </div>
+        <p>62% Occupied</p>
+      </div>
+
+      <!-- RECENT ACTIVITY -->
+      <div class="info-card slide-up delay">
+        <h3>Recent Activity</h3>
+        <ul class="activity-list">
+          <li>🚗 DL01AB1234 parked (Slot A12)</li>
+          <li>🚙 HR26DK9988 exited</li>
+          <li>🧾 New booking by Rahul</li>
+          <li>🚘 KA03MN4567 parked</li>
+        </ul>
+      </div>
+
+      <!-- QUICK INSIGHTS -->
+      <div class="info-card slide-up delay2">
+        <h3>Insights</h3>
+        <p>• Peak time: <b>6 PM – 9 PM</b></p>
+        <p>• Most used slot: <b>A12</b></p>
+        <p>• Avg. parking time: <b>2h 15m</b></p>
+      </div>
+
+    </div>
+
+  </div>
+</main>
+
+<footer class="footer">
+  <div class="footer-container">
+
+    <!-- Brand -->
+    <div class="footer-brand">
+      <h2>ParkEase</h2>
+      <p>Smart, secure & hassle-free parking management system.</p>
+    </div>
+
+    <!-- Quick Links -->
+    <div class="footer-links">
+      <h4>Quick Links</h4>
+      <ul>
+        <li>Dashboard</li>
+        <li>Parking Slots</li>
+        <li><a href="bookings.html">Bookings</a></li>
+        <li>Reports</li>
+      </ul>
+    </div>
+
+    <!-- Support -->
+    <div class="footer-links">
+      <h4>Support</h4>
+      <ul>
+        <li>Help Center</li>
+        <li>Terms & Conditions</li>
+        <li>Privacy Policy</li>
+        <li>Contact Us</li>
+      </ul>
+    </div>
+
+    <!-- Social -->
+    <div class="footer-social">
+      <h4>Connect With Us</h4>
+      <div class="social-icons">
+        <a href="https://www.linkedin.com/in/pradeep-singh4/"><i class="fab fa-linkedin"></i></a>
+        <a href="https://github.com/pradeep-r04"><i class="fab fa-github"></i></a>
+        <a href="https://x.com/altpradeep"><i class="fab fa-twitter"></i></a>
+        <a href="https://www.instagram.com/whypradeeep/"><i class="fab fa-instagram"></i></a>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="footer-bottom">
+    © 2026 ParkEase. All rights reserved.
+  </div>
+</footer>
+
+<script src="script.js"></script>
+</body>
+</html>

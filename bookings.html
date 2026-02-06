@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>ParkEase | Book Slot</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" href="logo.png" type="image/icon type">
+
+  <!-- Google Font -->
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+  <!-- CSS -->
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="dashboard">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <h2>ParkEase</h2>
+    <ul>
+      <li onclick="location.href='dashboard.html'">Dashboard</li>
+      <li class="active">Book Slot</li>
+      <li>My Bookings</li>
+      <li onclick="logout()">Logout</li>
+    </ul>
+  </aside>
+
+  <!-- MAIN CONTENT -->
+  <main class="main-content">
+
+    <div class="booking-header">
+      <h1>Book Your Parking Slot 🚗</h1>
+      <p>Select an available slot and confirm your booking</p>
+    </div>
+
+    <!-- LEGEND -->
+    <div class="legend">
+      <span><div class="box available"></div> Available</span>
+      <span><div class="box occupied"></div> Occupied</span>
+      <span><div class="box selected"></div> Selected</span>
+    </div>
+
+    <!-- SLOT GRID -->
+    <div class="slot-grid animate-grid">
+
+      <!-- Example slots -->
+      <div class="slot available" onclick="selectSlot(this)">A1</div>
+      <div class="slot occupied">A2</div>
+      <div class="slot available" onclick="selectSlot(this)">A3</div>
+      <div class="slot occupied">A4</div>
+
+      <div class="slot available" onclick="selectSlot(this)">B1</div>
+      <div class="slot available" onclick="selectSlot(this)">B2</div>
+      <div class="slot occupied">B3</div>
+      <div class="slot available" onclick="selectSlot(this)">B4</div>
+
+      <div class="slot available" onclick="selectSlot(this)">C1</div>
+      <div class="slot occupied">C2</div>
+      <div class="slot available" onclick="selectSlot(this)">C3</div>
+      <div class="slot available" onclick="selectSlot(this)">C4</div>
+
+    </div>
+
+    <!-- BOOKING CARD -->
+    <div class="booking-card slide-up">
+      <h3>Booking Details</h3>
+
+      <p>Selected Slot: <b id="selectedSlot">None</b></p>
+
+      <label>Vehicle</label>
+      <select>
+        <option>DL 01 AB 1234</option>
+        <option>HR 26 DK 9988</option>
+      </select>
+
+      <label>Parking Duration</label>
+      <select>
+        <option>1 Hour</option>
+        <option>2 Hours</option>
+        <option>3 Hours</option>
+      </select>
+
+      <button class="btn disabled" id="bookBtn" onclick="confirmBooking()">
+        Confirm Booking
+      </button>
+    </div>
+
+  </main>
+</div>
+<footer class="footer">
+  <div class="footer-container">
+
+    <!-- Brand -->
+    <div class="footer-brand">
+      <h2>ParkEase</h2>
+      <p>Smart, secure & hassle-free parking management system.</p>
+    </div>
+
+    <!-- Quick Links -->
+    <div class="footer-links">
+      <h4>Quick Links</h4>
+      <ul>
+        <li>Dashboard</li>
+        <li>Parking Slots</li>
+        <li><a href="bookings.html">Bookings</a></li>
+        <li>Reports</li>
+      </ul>
+    </div>
+
+    <!-- Support -->
+    <div class="footer-links">
+      <h4>Support</h4>
+      <ul>
+        <li>Help Center</li>
+        <li>Terms & Conditions</li>
+        <li>Privacy Policy</li>
+        <li>Contact Us</li>
+      </ul>
+    </div>
+
+    <!-- Social -->
+    <div class="footer-social">
+      <h4>Connect With Us</h4>
+      <div class="social-icons">
+        <a href="https://www.linkedin.com/in/pradeep-singh4/"><i class="fab fa-linkedin"></i></a>
+        <a href="https://github.com/pradeep-r04"><i class="fab fa-github"></i></a>
+        <a href="https://x.com/altpradeep"><i class="fab fa-twitter"></i></a>
+        <a href="https://www.instagram.com/whypradeeep/"><i class="fab fa-instagram"></i></a>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="footer-bottom">
+    © 2026 ParkEase. All rights reserved.
+  </div>
+</footer>
+
+<script src="script.js"></script>
+</body>
+</html>
