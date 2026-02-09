@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>ParkEase | Contact Us</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" href="logo.png">
+
+  <!-- Google Font -->
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body class="contact-page">
+
+<!-- NAVBAR -->
+<nav class="top-navbar">
+  <h2>ParkEase</h2>
+  <ul class="nav-links">
+   <li><a href="dashboard.html">Dashboard</a></li>
+    <li>Parking Slots</li>
+    <li><a href="bookings.html">Bookings</a></li>
+    <li>Users</li>
+    <li>Reports</li>
+    <li class="logout" onclick="logout()">Logout</li>
+  </ul>
+</nav>
+
+<!-- CONTACT SECTION -->
+<section class="contact-section">
+  <div class="contact-container">
+
+    <!-- LEFT INFO -->
+    <div class="contact-info slide-left">
+      <h1>Contact Us</h1>
+      <p>
+        Facing an issue with parking, booking, or payments?  
+        We’re here to help you 24/7.
+      </p>
+
+      <div class="info-item">
+        <i class="fa fa-envelope"></i>
+        <span>support@parkease.com</span>
+      </div>
+
+      <div class="info-item">
+        <i class="fa fa-phone"></i>
+        <span>+91 98765 43210</span>
+      </div>
+
+      <div class="info-item">
+        <i class="fa fa-location-dot"></i>
+        <span>New Delhi, India</span>
+      </div>
+    </div>
+
+    <!-- FORM -->
+    <div class="contact-form slide-right">
+      <h2>Send Your Issue</h2>
+
+      <form name="submit-to-google-sheet" onsubmit="submitContact(event)">
+        <div class="input-group">
+          <input type="text" name="Name" placeholder="Full Name" required>
+        </div>
+
+        <div class="input-group">
+          <input type="email" name="Email" placeholder="Email Address" required>
+        </div>
+
+        <div class="input-group">
+          <select required name="Issue">
+            <option value="">Select Issue Type</option>
+            <option>Booking Issue</option>
+            <option>Payment Problem</option>
+            <option>Slot Availability</option>
+            <option>Account/Login Issue</option>
+            <option>Other</option>
+          </select>
+        </div>
+
+        <div class="input-group">
+          <textarea name="Message" placeholder="Describe your issue..." required></textarea>
+        </div>
+
+        <button type="submit" class="btn">
+          <i class="fa fa-paper-plane"></i> Submit Request
+        </button>
+      </form>
+      <span id="msg"></span>
+    </div>
+
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer class="footer1">
+  <div class="footer-bottom">
+    © 2026 ParkEase. All rights reserved.
+  </div>
+</footer>
+
+<script>
+        const scriptURL = 'https://script.google.com/macros/s/AKfycbwxDBhbR8E7dbnxau6cKpAZyf3Xz7nPxY-MTzftKAMxSs2gUHNW30g5RkUNy1fkBA/exec'
+        const form = document.forms['submit-to-google-sheet']
+        const msg = document.getElementById("msg")
+
+
+        form.addEventListener('submit', e => {
+          e.preventDefault()
+          fetch(scriptURL, { method: 'POST', body: new FormData(form)})
+            .then(response => {
+                msg.innerHTML = "✅ Your issue has been submitted. Our team will contact you soon!"
+                setTimeout(function(){
+                    msg.innerHTML = ""
+                },2000)
+                form.reset()
+            })
+            .catch(error => console.error('Error!', error.message))
+        })
+      </script>
+<script src="script.js"></script>
+</body>
+</html>
+
