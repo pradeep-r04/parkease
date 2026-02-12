@@ -63,6 +63,10 @@ ParkEase is a web-based application that allows users to pre-book parking slots 
   <img src="https://github.com/Rima-Kalita.png" width="80px;" alt="Rima Kalita"/>
 </a>
 
+<a href="https://github.com/Pratik1000">
+  <img src="https://github.com/Pratik1000.png" width="80px;" alt="Rima Kalita"/>
+</a>
+
 
 
 
