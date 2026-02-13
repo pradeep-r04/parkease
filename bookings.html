@@ -15,23 +15,29 @@
   <!-- CSS -->
   <link rel="stylesheet" href="style.css">
 </head>
-<body>
+<body class="contact-page">
 
-<div class="dashboard">
+ <!-- navbar -->
+   <nav class="top-navbar">
+    
+  <div class="logo">
+    <a href="index.html" class="logo">
+    <img src="logo.png" alt="ParkEase Logo"></a>
+    <span>ParkEase</span>
+  </div>
 
-  <!-- SIDEBAR -->
-  <aside class="sidebar">
-    <h2>ParkEase</h2>
-    <ul>
-      <li onclick="location.href='dashboard.html'">Dashboard</li>
-      <li class="active">Book Slot</li>
-      <li>My Bookings</li>
-      <li onclick="logout()">Logout</li>
-    </ul>
-  </aside>
+  <ul class="nav-links">
+    <li><a href="dashboard.html">Dashboard</a></li>
+    <li>Parking Slots</li>
+    <li><a href="bookings.html">Bookings</a></li>
+    <li class="logout" onclick="logout()">Logout</li>
+  </ul>
+</nav>
+
+  
 
   <!-- MAIN CONTENT -->
-  <main class="main-content">
+  <main class="main-content" style="align-items: center; justify-content: center;">
 
     <div class="booking-header">
       <h1>Book Your Parking Slot 🚗</h1>
@@ -91,7 +97,7 @@
     </div>
 
   </main>
-</div>
+
 <footer class="footer">
   <div class="footer-container">
 
@@ -105,7 +111,7 @@
     <div class="footer-links">
       <h4>Quick Links</h4>
       <ul>
-        <li>Dashboard</li>
+        <li><a href="dashboard.html">Dashboard</a></li>
         <li>Parking Slots</li>
         <li><a href="bookings.html">Bookings</a></li>
         <li>Reports</li>
@@ -117,7 +123,7 @@
       <h4>Support</h4>
       <ul>
         <li>Help Center</li>
-        <li>Terms & Conditions</li>
+        <li><a href="terms.html">Terms & Conditions</a></li>
         <li>Privacy Policy</li>
         <li><a href="contact.html">Contact Us</a></li>
       </ul>
@@ -129,7 +135,7 @@
       <div class="social-icons">
         <a href="https://www.linkedin.com/in/pradeep-singh4/"><i class="fab fa-linkedin"></i></a>
         <a href="https://github.com/pradeep-r04"><i class="fab fa-github"></i></a>
-        <a href="https://x.com/altpradeep"><i class="fab fa-twitter"></i></a>
+        <a href="https://x.com/altpradeep"><i class="fa-brands fa-x-twitter"></i></a>
         <a href="https://www.instagram.com/whypradeeep/"><i class="fab fa-instagram"></i></a>
       </div>
     </div>

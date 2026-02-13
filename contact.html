@@ -19,13 +19,15 @@
 
 <!-- NAVBAR -->
 <nav class="top-navbar">
-  <h2>ParkEase</h2>
+  <div class="logo">
+    <a href="index.html" class="logo">
+    <img src="logo.png" alt="ParkEase Logo"></a>
+    <span>ParkEase</span>
+  </div>
   <ul class="nav-links">
    <li><a href="dashboard.html">Dashboard</a></li>
     <li>Parking Slots</li>
     <li><a href="bookings.html">Bookings</a></li>
-    <li>Users</li>
-    <li>Reports</li>
     <li class="logout" onclick="logout()">Logout</li>
   </ul>
 </nav>
@@ -111,12 +113,15 @@
 
         form.addEventListener('submit', e => {
           e.preventDefault()
+
+          msg.innerHTML = "⏳ Sending message..."
+
           fetch(scriptURL, { method: 'POST', body: new FormData(form)})
             .then(response => {
                 msg.innerHTML = "✅ Your issue has been submitted. Our team will contact you soon!"
                 setTimeout(function(){
                     msg.innerHTML = ""
-                },2000)
+                },1000)
                 form.reset()
             })
             .catch(error => console.error('Error!', error.message))

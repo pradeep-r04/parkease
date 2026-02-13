@@ -192,6 +192,9 @@ function confirmBooking() {
 
   currentSlot = null;
 }
-// Navbar
+
+function downloadPDF() {
+  window.print();
+}
 
 
