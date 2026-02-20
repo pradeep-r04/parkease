@@ -156,7 +156,7 @@ body {
 }
 
 .subtitle {
-  opacity: 0.85;
+
   margin-bottom: 40px;
 }
 
@@ -429,11 +429,13 @@ body.dark .login-left {
 /* Bookings */
 .booking-header {
   margin-top:6rem;
+  text-align: center;
 }
 
 .legend {
   display: flex;
   gap: 20px;
+  justify-content: center;
   font-size: 14px;
   margin-bottom: 20px;
 }
@@ -450,6 +452,7 @@ body.dark .login-left {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
   gap: 15px;
+
   max-width: 500px;
   margin-bottom: 30px;
 }
@@ -490,6 +493,7 @@ body.dark .login-left {
   background: #fff;
   padding: 20px;
   max-width: 350px;
+  justify-content: center;
   border-radius: 15px;
   box-shadow: 0 15px 30px rgba(0,0,0,0.15);
 }
@@ -591,11 +595,6 @@ body.dark .login-left {
   font-size: 14px;
 }
 
-.subtitle {
-  font-size: 13px;
-  color: #777;
-  margin-bottom: 15px;
-}
 /* footer */
 /* 🌙 FOOTER */
 .footer {
