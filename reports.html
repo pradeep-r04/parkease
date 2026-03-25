@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>ParkEase | Advanced Reports</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <!-- Fonts & Icons -->
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+
+<body>
+
+<!-- NAVBAR -->
+<nav class="top-navbar">
+  <div class="logo">
+    <img src="logo.png">
+    <span>ParkEase</span>
+  </div>
+
+  <ul class="nav-links">
+    <li><a href="dashboard.html">Dashboard</a></li>
+    <li><a href="bookings.html">Bookings</a></li>
+    <li class="logout" onclick="logout()">Logout</li>
+  </ul>
+</nav>
+
+<!-- MAIN -->
+<main class="content" style="margin-top:80px;">
+
+  <h1>Advanced Reports 📊</h1>
+  <p class="subtitle">Track performance, revenue & usage</p>
+
+  <!-- FILTER -->
+  <div class="info-card" style="margin-bottom:20px;">
+    <h3>Filter Reports</h3>
+    <input type="date" id="fromDate">
+    <input type="date" id="toDate">
+    <button class="btn" onclick="filterReports()">Apply</button>
+  </div>
+
+  <!-- STATS -->
+  <div class="stats">
+    <div class="stat-card">
+      <h3>Total Revenue</h3>
+      <p id="revenue">₹12,450</p>
+    </div>
+
+    <div class="stat-card available">
+      <h3>Total Bookings</h3>
+      <p id="bookings">320</p>
+    </div>
+
+    <div class="stat-card occupied">
+      <h3>Occupancy Rate</h3>
+      <p id="occupancy">62%</p>
+    </div>
+
+    <div class="stat-card">
+      <h3>Active Vehicles</h3>
+      <p id="vehicles">45</p>
+    </div>
+  </div>
+
+  <!-- CHARTS -->
+  <div class="extra-section">
+
+    <div class="info-card">
+      <h3>Revenue Trend</h3>
+      <canvas id="revenueChart"></canvas>
+    </div>
+
+    <div class="info-card">
+      <h3>Slot Usage</h3>
+      <canvas id="slotChart"></canvas>
+    </div>
+
+  </div>
+
+  <!-- BOOKINGS TABLE -->
+  <div class="info-card" style="margin-top:30px;">
+    <h3>Recent Bookings</h3>
+
+    <table style="width:100%; margin-top:15px;">
+      <thead>
+        <tr style="background:#0f172a; color:#fff;">
+          <th>Vehicle</th>
+          <th>Slot</th>
+          <th>Time</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+
+      <tbody id="tableData">
+        <tr>
+          <td>DL01AB1234</td>
+          <td>A12</td>
+          <td>2:30 PM</td>
+          <td style="color:green;">Active</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- DOWNLOAD -->
+  <div style="text-align:center; margin-top:30px;">
+    <button class="btn" onclick="downloadPDF()">Download PDF 📄</button>
+  </div>
+
+</main>
+
+<script src="script.js"></script>
+
+<script>
+/* 📊 REVENUE CHART */
+new Chart(document.getElementById("revenueChart"), {
+  type: "line",
+  data: {
+    labels: ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"],
+    datasets: [{
+      label: "Revenue ₹",
+      data: [1200, 1900, 1500, 2200, 1800, 2500, 3000],
+      borderWidth: 2,
+      tension: 0.4
+    }]
+  }
+});
+
+/* 🍩 SLOT USAGE */
+new Chart(document.getElementById("slotChart"), {
+  type: "doughnut",
+  data: {
+    labels: ["Occupied", "Available"],
+    datasets: [{
+      data: [75, 45]
+    }]
+  }
+});
+
+/* FILTER (Demo logic) */
+function filterReports() {
+  alert("Filtering applied (connect Firebase for real data)");
+}
+
+/* DOWNLOAD */
+function downloadPDF() {
+  window.print();
+}
+</script>
+
+</body>
+</html>
