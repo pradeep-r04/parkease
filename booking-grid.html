@@ -1,0 +1,284 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>ParkEase | User Portal</title>
+     <link rel="icon" href="logo.png" type="image/icon type">
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+    />
+    <link rel="stylesheet" href="grid-style.css" />
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+    <script src="script.js" defer></script>
+    <script src="user.js" defer></script>
+  </head>
+
+  <body class="user-page">
+    <div class="bg-image-wrapper"></div>
+
+    <aside
+      class="sidebar"
+      style="background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(10px)"
+    >
+      <div class="sidebar-header" onclick="switchUserView('profile')">
+        <img src="logo.png" alt="Park Ease Logo" class="custom-logo" />
+        <div>
+          <h1 class="sidebar-title">ParkEase</h1>
+          <p id="userProfileEmail" class="sidebar-subtitle">Guest User</p>
+        </div>
+      </div>
+
+      <nav class="nav-menu">
+        <div class="nav-label">Main Menu</div>
+
+        <div
+          class="nav-item"
+          onclick="switchUserView('profile')"
+          id="nav-profile"
+        >
+          <i class="fas fa-user-circle nav-icon"></i> User Profile
+        </div>
+
+        <div
+          class="nav-item active"
+          onclick="switchUserView('reserve')"
+          id="nav-reserve"
+        >
+          <i class="fas fa-th nav-icon"></i> Reserve Spot
+        </div>
+
+        <div
+          class="nav-item"
+          onclick="switchUserView('history')"
+          id="nav-history"
+        >
+          <i class="fas fa-history nav-icon"></i> My Bookings
+        </div>
+
+        <div
+          class="nav-item logout-item"
+          onclick="logout()"
+          style="color: #ef4444; margin-top: 20px"
+        >
+          <i class="fas fa-sign-out-alt nav-icon"></i> Logout
+        </div>
+      </nav>
+    </aside>
+
+    <main class="main-content" style="background: transparent !important">
+      <header class="user-header">
+        <div class="header-left">
+          <h1 id="portalTitle" class="logo-title">Booking Portal</h1>
+          <span id="portalSubtitle" class="logo-subtitle"
+            >Select your space and duration below.</span
+          >
+        </div>
+        <div id="liveClock" class="live-clock-pill">00:00:00</div>
+      </header>
+
+      <div id="view-reserve" class="view-panel">
+        <div class="glass-panel">
+          <div class="step-section" style="margin-top: 0">
+            <div>
+              <span class="step-label">Step 01</span>
+              <h2 class="step-title">Select Your Space</h2>
+            </div>
+            <div class="legend-box">
+              <div class="legend-item">
+                <div class="legend-color lc-available"></div>
+                Available
+              </div>
+              <div class="legend-item">
+                <div class="legend-color lc-choice"></div>
+                Your Choice
+              </div>
+              <div class="legend-item">
+                <div class="legend-color lc-occupied"></div>
+                Occupied
+              </div>
+            </div>
+          </div>
+
+          <div class="grid-wrapper">
+            <div class="zone-box">
+              <p class="zone-title">ZONE A</p>
+              <div id="u_gridP" class="grid-container"></div>
+            </div>
+            <div class="driveway">
+              <div class="driveway-label text-emerald">Entry</div>
+              <div class="driveway-arrows">
+                <i class="fas fa-chevron-down"></i>
+              </div>
+              <div class="driveway-label text-red">Exit</div>
+            </div>
+            <div class="zone-box">
+              <p class="zone-title">ZONE B</p>
+              <div id="u_gridS" class="grid-container"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="bottom-bar glass-panel" style="margin-top: 20px">
+          <div class="price-box">
+            <p class="price-title">Estimated Total</p>
+            <h2 id="total" class="price-amount">₹0</h2>
+          </div>
+
+          <div class="inputs-row">
+            <div class="input-group">
+              <label class="input-label">Driver Name</label>
+              <input
+                type="text"
+                id="driverName"
+                placeholder="Enter Name"
+                class="name-input"
+              />
+            </div>
+
+            <div class="input-group">
+              <label class="input-label">Duration</label>
+              <div class="duration-group">
+                <button
+                  onclick="setDuration(1)"
+                  class="duration-btn active"
+                  id="d1"
+                >
+                  1h
+                </button>
+                <button onclick="setDuration(2)" class="duration-btn" id="d2">
+                  2h
+                </button>
+                <button onclick="setDuration(3)" class="duration-btn" id="d3">
+                  3h
+                </button>
+                <button onclick="setDuration(4)" class="duration-btn" id="d4">
+                  4h
+                </button>
+                <button onclick="setDuration(5)" class="duration-btn" id="d5">
+                  5h
+                </button>
+                <button onclick="setDuration(6)" class="duration-btn" id="d6">
+                  6h
+                </button>
+                <button onclick="setDuration(7)" class="duration-btn" id="d7">
+                  7h
+                </button>
+                <button onclick="setDuration(8)" class="duration-btn" id="d8">
+                  8h
+                </button>
+                <button onclick="setDuration(12)" class="duration-btn" id="d12">
+                  12h
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <button onclick="confirmBooking()" class="btn-confirm">
+            <i class="fas fa-check-circle"></i> Confirm Booking
+          </button>
+        </div>
+      </div>
+
+      <div id="view-history" class="view-panel hidden">
+        <div class="glass-panel">
+          <h2 class="table-title">
+            <i class="fas fa-history"></i> My Active Bookings
+          </h2>
+          <div class="table-wrapper custom-scroll">
+            <table class="admin-table">
+              <thead>
+                <tr>
+                  <th>Slot ID</th>
+                  <th>Check-In</th>
+                  <th>Check-Out</th>
+                  <th style="text-align: right">Action</th>
+                </tr>
+              </thead>
+              <tbody id="historyTable"></tbody>
+            </table>
+          </div>
+
+          <h2
+            class="table-title"
+            style="
+              margin-top: 40px;
+              border-top: 1px solid rgba(255, 255, 255, 0.05);
+              padding-top: 20px;
+            "
+          >
+            <i class="fas fa-clock"></i> Past Bookings
+          </h2>
+          <div class="table-wrapper custom-scroll" style="margin-top: 15px">
+            <table class="admin-table">
+              <thead>
+                <tr>
+                  <th>Slot ID</th>
+                  <th>Date</th>
+                  <th>Check-In</th>
+                  <th>Check-Out</th>
+                  <th style="text-align: right">Status</th>
+                </tr>
+              </thead>
+              <tbody id="pastHistoryTable"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <div id="view-profile" class="view-panel hidden">
+        <div
+          class="glass-panel"
+          style="max-width: 500px; margin: 0 auto; padding: 40px"
+        >
+          <h2 class="step-title" style="margin-bottom: 10px">
+            <i class="fas fa-id-card"></i> Personal Details
+          </h2>
+          <p style="color: #94a3b8; font-size: 14px; margin-bottom: 30px">
+            Complete your profile to enable 1-click auto-fill booking.
+          </p>
+
+          <div class="input-group" style="margin-bottom: 20px">
+            <label class="input-label">Full Name</label>
+            <input
+              type="text"
+              id="profName"
+              class="name-input"
+              placeholder="Enter your name"
+            />
+          </div>
+
+          <div class="input-group" style="margin-bottom: 20px">
+            <label class="input-label">Car Model</label>
+            <input
+              type="text"
+              id="profCar"
+              class="name-input"
+              placeholder="e.g. Honda Civic"
+            />
+          </div>
+
+          <div class="input-group" style="margin-bottom: 30px">
+            <label class="input-label">License Plate</label>
+            <input
+              type="text"
+              id="profPlate"
+              class="name-input"
+              placeholder="ABC-1234"
+            />
+          </div>
+
+          <button
+            class="btn-confirm"
+            style="width: 100%"
+            onclick="saveProfile()"
+          >
+            <i class="fas fa-save"></i> Save Details
+          </button>
+        </div>
+      </div>
+    </main>
+  </body>
+</html>

@@ -1,5 +1,6 @@
+// 1. REAL FIREBASE LOGIN FUNCTION
 function login() {
-  const email = document.getElementById("email").value;
+  const email = document.getElementById("email").value.trim();
   const password = document.getElementById("password").value;
 
   if (email === "" || password === "") {
@@ -7,16 +8,52 @@ function login() {
     return;
   }
 
-  
+  // Check for Hardcoded Admin first (Optional - you can also store admin in Firebase)
   if (email === "admin@parkease.com" && password === "admin123") {
-    window.location.href = "dashboard.html";
-  } else {
-    alert("Invalid credentials");
+    localStorage.setItem('loggedInRole', 'admin');
+    window.location.href = "admin.html"; // Redirects to our new Enterprise Admin Panel
+    return;
   }
+
+  // --- 2. NEW USER PROFILE CHECK (user1@gmail.com) ---
+  if (email === "user1@gmail.com" && password === "user1") {
+    localStorage.setItem('loggedInRole', 'user');
+    localStorage.setItem('userEmail', 'user1@gmail.com');
+    window.location.href = "booking-grid.html"; 
+    return;
+  }
+
+  // Firebase Auth for regular users
+  firebase.auth().signInWithEmailAndPassword(email, password)
+    .then((userCredential) => {
+      const user = userCredential.user;
+
+      // Check if user has verified their email
+      if (user.emailVerified) {
+        localStorage.setItem('loggedInRole', 'user');
+        localStorage.setItem('userEmail', user.email);
+        
+        // Redirect to your new interactive booking grid
+        window.location.href = "booking-grid.html"; 
+      } else {
+        alert("Please verify your email before logging in. Check your inbox!");
+        firebase.auth().signOut();
+      }
+    })
+    .catch((error) => {
+      alert("Login Failed: " + error.message);
+    });
 }
 
+// 2. UPDATED LOGOUT FUNCTION
 function logout() {
-  window.location.href = "index.html";
+  firebase.auth().signOut().then(() => {
+    localStorage.removeItem('loggedInRole');
+    localStorage.removeItem('userEmail');
+    window.location.href = "index.html"; // Back to login page
+  }).catch((error) => {
+    console.error("Logout Error:", error);
+  });
 }
 
 
@@ -118,8 +155,11 @@ const firebaseConfig = {
   appId: "1:408681985860:web:7f022ae6d12cce816e8911",
   measurementId: "G-DGYY8PP4Z9"
 };
-const app = initializeApp(firebaseConfig);
-const analytics = getAnalytics(app);
+
+// CRITICAL FIX: Use the correct V8 initialization syntax
+if (!firebase.apps.length) {
+    firebase.initializeApp(firebaseConfig);
+}
 
 // password strength
 function checkStrength() {

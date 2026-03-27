@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>ParkEase | Admin</title>
+     <link rel="icon" href="logo.png" type="image/icon type">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="grid-style.css">
+    <script src="admin.js" defer></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+    <script src="script.js" defer></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+</head>
+
+<body class="admin-page">
+    <div class="bg-image-wrapper"></div>
+
+    <aside class="sidebar" style="background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(10px);">
+        
+        <div class="sidebar-header" onclick="switchView('dashboard')">
+            <img src="logo.png" alt="Park Ease Logo" class="custom-logo">
+            <div>
+                <h1 class="sidebar-title">ParkEase</h1>
+                <p class="sidebar-subtitle">Enterprise Admin</p>
+            </div>
+        </div>
+        
+        <nav class="nav-menu">
+            <div class="nav-label">Main Menu</div>
+            <div class="nav-item active" onclick="switchView('dashboard')" id="nav-dashboard">
+                <i class="fas fa-chart-pie nav-icon"></i> Analytics
+            </div>
+            <div class="nav-item" onclick="switchView('control')" id="nav-control">
+                <i class="fas fa-sliders-h nav-icon"></i> Control Panel
+            </div>
+        </nav>
+
+        <div class="sidebar-footer" style="display: flex; flex-direction: column; gap: 12px;">
+            <button onclick="generatePDF()" class="btn-emerald" style="width: 100%; justify-content: center; background: #10b981;">
+                <i class="fas fa-file-pdf"></i> Generate Report
+            </button>
+            <button onclick="adminLogout()" class="btn-logout" style="width: 100%; justify-content: center;">
+                <i class="fas fa-sign-out-alt"></i> Logout
+            </button>
+            <button onclick="localStorage.removeItem('parkingData'); location.reload();" class="btn-danger">
+                Reset System
+            </button>
+        </div>
+        
+    </aside>
+
+    <main class="admin-main">
+        <header class="admin-header">
+            <div>
+                <h2 id="pageTitle" class="page-title">System Overview</h2>
+                <p class="page-subtitle">Real-time data and facility management</p>
+            </div>
+            <div class="live-status">
+                <div class="status-dot"></div>
+                <div>
+                    <p class="status-label">Live Server Time</p>
+                    <p id="liveClock" class="status-time">00:00:00</p>
+                </div>
+            </div>
+        </header>
+
+        <div id="view-dashboard" class="view-panel custom-scroll">
+            
+            <div class="kpi-grid">
+                <div class="kpi-card"><i class="fas fa-coins kpi-icon text-indigo"></i>
+                    <p class="kpi-label">Est. Revenue</p>
+                    <h3 id="kpi-revenue" class="kpi-value">₹0</h3>
+                </div>
+                <div class="kpi-card"><i class="fas fa-car kpi-icon text-red"></i>
+                    <p class="kpi-label">Active Bookings</p>
+                    <h3 id="kpi-active" class="kpi-value text-red">0</h3>
+                </div>
+                <div class="kpi-card"><i class="fas fa-parking kpi-icon text-emerald"></i>
+                    <p class="kpi-label">Available</p>
+                    <h3 id="kpi-available" class="kpi-value text-emerald">0</h3>
+                </div>
+                <div class="kpi-card"><i class="fas fa-wrench kpi-icon text-slate"></i>
+                    <p class="kpi-label">Maintenance</p>
+                    <h3 id="kpi-maintenance" class="kpi-value text-slate">0</h3>
+                </div>
+                <div class="kpi-card"><i class="fas fa-wheelchair kpi-icon" style="color: #3b82f6; opacity: 0.2;"></i>
+                    <p class="kpi-label">Accessible</p>
+                    <h3 id="kpi-accessible" class="kpi-value" style="color: #3b82f6;">0</h3>
+                </div>
+                <div class="kpi-card"><i class="fas fa-th kpi-icon text-slate"></i>
+                    <p class="kpi-label">Capacity</p>
+                    <h3 id="kpi-total" class="kpi-value">0</h3>
+                </div>
+            </div>
+
+            <div class="chart-grid">
+                <div class="chart-card">
+                    <h3 class="chart-title">Revenue Trends</h3>
+                    <div class="chart-container">
+                        <canvas id="revenueChart"></canvas>
+                    </div>
+                </div>
+                <div class="chart-card">
+                    <h3 class="chart-title">Live Occupancy</h3>
+                    <div class="chart-container">
+                        <canvas id="occupancyChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+        </div> <div id="view-control" class="control-layout hidden">
+            <div class="control-left">
+                <div class="grid-panel">
+                    <div>
+                        <p class="zone-title">ZONE A</p>
+                        <div id="gridP" class="grid-container"></div>
+                    </div>
+
+                    <div class="driveway admin-driveway">
+                        <div class="driveway-label text-emerald">Entry</div>
+                        <div class="driveway-line"></div>
+                        <div class="driveway-arrows"><i class="fas fa-chevron-down"></i><i class="fas fa-chevron-down"></i></div>
+                        <div class="driveway-label text-red">Exit</div>
+                    </div>
+
+                    <div>
+                        <p class="zone-title">ZONE B</p>
+                        <div id="gridS" class="grid-container"></div>
+                    </div>
+                </div>
+
+                <div class="form-panel custom-scroll">
+                    <div id="noSel" class="form-empty">
+                        <i class="fas fa-object-group"></i>
+                        <p>Select Grid Boxes</p>
+                    </div>
+
+                    <div id="addForm" class="hidden">
+                        <div class="form-header">
+                            <span class="form-title text-indigo">New Allocation</span>
+                            <span id="addBadge" class="badge badge-indigo">1 Selected</span>
+                        </div>
+                        <div id="slotIdContainer"><input type="text" id="slotId" class="admin-input"></div>
+                        <button onclick="saveNew()" class="btn-indigo"><span id="addBtnText">Place Slot</span></button>
+                    </div>
+
+                    <div id="editForm" class="hidden">
+                        <div class="form-header">
+                            <span class="form-title text-emerald">Batch Edit Mode</span>
+                            <span id="editBadge" class="badge badge-emerald">1 Selected</span>
+                        </div>
+                        <h2 id="editTitle" class="edit-title">--</h2>
+                        <select id="statusSelect" class="admin-select">
+                            <option value="available">Available (Green)</option>
+                            <option value="booked">Booked (Red)</option>
+                            <option value="not-available">Maintenance (Gray)</option>
+                            <option value="disabled-spot">Accessible/Handicap (Blue)</option>
+                        </select>
+                        <div class="btn-group">
+                            <button onclick="update()" class="btn-emerald">Apply</button>
+                            <button onclick="remove()" class="btn-trash"><i class="fas fa-trash"></i></button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="table-panel">
+                <div class="table-header-row">
+                    <h2 class="table-title">Live Tracker</h2>
+                    <div id="activeCount" class="active-count">0 ACTIVE</div>
+                </div>
+                <div class="table-wrapper custom-scroll">
+                    <table class="admin-table">
+                        <thead>
+                            <tr>
+                                <th>Slot & Driver</th>
+                                <th>Time Tracker</th>
+                                <th style="text-align: right;">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="logTable"></tbody>
+                    </table>
+                    <div id="emptyMsg" class="table-empty">No Active Bookings</div>
+                </div>
+            </div>
+        </div>
+
+    </main>
+</body>
+</html>
