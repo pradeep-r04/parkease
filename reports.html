@@ -1,16 +1,20 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+  <head>
   <meta charset="UTF-8">
-  <title>ParkEase | Advanced Reports</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-  <!-- Fonts & Icons -->
+  <title>ParkEase | Login</title>
+  <link rel="icon" href="logo.png" type="image/icon type">
+  <!-- Google Font -->
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <!-- CSS -->
   <link rel="stylesheet" href="style.css">
-
-  <!-- Chart.js -->
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 </head>
 
 <body>
@@ -18,12 +22,13 @@
 <!-- NAVBAR -->
 <nav class="top-navbar">
   <div class="logo">
-    <img src="logo.png">
+    <a href="index.html" class="logo">
+    <img src="logo.png" alt="ParkEase Logo"></a>
     <span>ParkEase</span>
   </div>
-
   <ul class="nav-links">
     <li><a href="dashboard.html">Dashboard</a></li>
+    <li>Parking Slots</li>
     <li><a href="bookings.html">Bookings</a></li>
     <li class="logout" onclick="logout()">Logout</li>
   </ul>
@@ -151,6 +156,54 @@ function downloadPDF() {
   window.print();
 }
 </script>
+<!-- 🌙 FOOTER -->
+<footer class="footer">
+  <div class="footer-container">
 
+    <!-- Brand -->
+    <div class="footer-brand">
+      <h2>ParkEase</h2>
+      <p>Smart, secure & hassle-free parking management system.</p>
+    </div>
+
+    <!-- Quick Links -->
+    <div class="footer-links">
+      <h4>Quick Links</h4>
+      <ul>
+        <li><a href="dashboard.html">Dashboard</li></a>
+        <li>Parking Slots</li>
+        <li><a href="bookings.html">Bookings</a></li>
+        <li><a href="reports.html">Reports</a></li>
+      </ul>
+    </div>
+
+    <!-- Support -->
+    <div class="footer-links">
+      <h4>Support</h4>
+      <ul>
+        <li><a href="help.html">Help Center</a></li>
+        <li><a href="terms.html">Terms & Conditions</a></li>
+        <li><a href="privacy.html">Privacy Policy</a></li>
+        <li><a href="contact.html">Contact Us</a></li>
+      </ul>
+    </div>
+
+    <!-- Social -->
+    <div class="footer-social">
+      <h4>Connect With Us</h4>
+      <div class="social-icons">
+        <a href="https://www.linkedin.com/in/pradeep-singh4/"><i class="fab fa-linkedin"></i></a>
+        <a href="https://github.com/pradeep-r04"><i class="fab fa-github"></i></a>
+        <a href="https://x.com/altpradeep"><i class="fa-brands fa-x-twitter"></i></a>
+        <a href="https://www.instagram.com/whypradeeep/"><i class="fab fa-instagram"></i></a>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="footer-bottom">
+    © 2026 ParkEase. All rights reserved.
+  </div>
+</footer>
 </body>
 </html>

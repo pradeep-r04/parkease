@@ -5,6 +5,8 @@
   <title>ParkEase | Privacy Policy</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="stylesheet" href="style.css">
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
 </head>
 
 <body class="legal-page">
@@ -12,7 +14,8 @@
 <!-- NAVBAR -->
 <nav class="top-navbar">
   <div class="logo">
-    <img src="logo.png">
+    <a href="index.html" class="logo">
+    <img src="logo.png" alt="ParkEase Logo"></a>
     <span>ParkEase</span>
   </div>
 
@@ -20,7 +23,7 @@
     <li><a href="dashboard.html">Dashboard</a></li>
     <li><a href="bookings.html">Bookings</a></li>
     <li><a href="report.html">Reports</a></li>
-    <li class="logout" onclick="logout()">Logout</li>
+    <li class="logout"><a href="#" onclick="logout()">Logout</a></li>
   </ul>
 </nav>
 
@@ -32,9 +35,7 @@
       <h1>Privacy Policy 🔒</h1>
       <p class="last-updated">Last updated: 2026</p>
     </div>
-
     <div class="legal-content">
-
       <h3>1. Information We Collect</h3>
       <p>
         We collect user details such as name, email, phone number, and vehicle information.
@@ -69,7 +70,11 @@
 
   </div>
 </section>
-
+<footer class="footer2">
+  <div class="footer-bottom">
+    © 2026 ParkEase. All rights reserved.
+  </div>
+</footer>
 <script src="script.js"></script>
 </body>
 </html>
