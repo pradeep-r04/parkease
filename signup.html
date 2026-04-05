@@ -11,8 +11,6 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
   <!-- CSS -->
   <link rel="stylesheet" href="style.css">
-  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
 </head>
 <body>
   <!-- navbar -->
@@ -27,7 +25,6 @@
     <li><a href="dashboard.html">Dashboard</a></li>
     <li>Parking Slots</li>
     <li><a href="bookings.html">Bookings</a></li>
-    <li class="logout" onclick="logout()">Logout</li>
   </ul>
 </nav>
 <button class="dark-toggle" onclick="toggleDarkMode()">🌙</button>
@@ -69,7 +66,7 @@
 
           <div class="input-group">
             <i class="fa fa-phone"></i>
-            <input type="tel" id="phone" placeholder="Phone Number" required>
+            <input type="tel" id="phone" placeholder="Phone Number" maxlength="10" required>
           </div>
 
           <div class="input-group">

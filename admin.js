@@ -170,33 +170,65 @@ async function render() {
       }
     });
 
-    // Update active bookings log
-    const booked = slots.filter((s) => s.status === "booked");
+    // ==========================================
+    // NEW: FETCH REAL HISTORY FOR ADMIN TABLE
+    // ==========================================
+    const historyRes = await fetch(
+      "http://localhost:3000/api/admin/all-history",
+    );
+    const historyData = await historyRes.json();
+
     const table = document.getElementById("logTable");
     const empty = document.getElementById("emptyMsg");
 
     if (table) {
+      // Update the badge to count only "Active" bookings
+      const activeCount = historyData.filter(
+        (h) => h.status === "Active",
+      ).length;
       document.getElementById("activeCount").innerText =
-        `${booked.length} ACTIVE`;
+        `${activeCount} ACTIVE`;
+
       table.innerHTML = "";
-      if (booked.length === 0) empty.classList.remove("hidden");
-      else {
+
+      if (historyData.length === 0) {
+        empty.classList.remove("hidden");
+      } else {
         empty.classList.add("hidden");
-        booked.forEach((s) => {
+
+        historyData.forEach((h) => {
           const row = document.createElement("tr");
+
+          // Format the date properly
+          let d = new Date(h.booking_date);
+          let formattedDate = d.toLocaleDateString();
+
+          // Determine what to show in the Action column
+          let statusHtml = "";
+          if (h.status === "Active") {
+            // If active, show the Release button
+            statusHtml = `<button onclick="release('${h.slot_id}')" class="btn-release">Release</button>`;
+          } else {
+            // If cancelled/completed, show the colored text!
+            let color = h.status === "Completed" ? "#34d399" : "#f87171";
+            statusHtml = `<span style="color: ${color}; font-weight: 900; font-size: 10px; text-transform: uppercase;">${h.status}</span>`;
+          }
+
+          // Draw the row
           row.innerHTML = `
-                        <td>
-                            <p class="td-slot-id">${s.id}</p>
-                            <p class="td-driver"><i class="fas fa-user"></i> ${s.userName || "Walk-in"}</p>
-                        </td>
-                        <td>
-                            <span class="td-time-in">IN: ${s.checkIn || "--:--"}</span>
-                            <span class="td-time-out">OUT: ${s.checkOut || "--:--"}</span>
-                        </td>
-                        <td style="text-align: right;">
-                            <button onclick="release('${s.id}')" class="btn-release">Release</button>
-                        </td>
-                    `;
+            <td>
+                <p class="td-slot-id">${h.slot_id}</p>
+                <p class="td-driver"><i class="fas fa-envelope"></i> ${h.user_email || "Walk-in"}</p>
+            </td>
+            <td>
+                <span style="color: #94a3b8; font-size: 10px; display: block; margin-bottom: 2px;">${formattedDate}</span>
+                <span class="td-time-in">IN: ${h.check_in || "--:--"}</span>
+                <span class="td-time-out">OUT: ${h.check_out || "--:--"}</span>
+            </td>
+            <td style="text-align: right;">
+                ${statusHtml}
+            </td>
+          `;
           table.appendChild(row);
         });
       }
@@ -366,11 +398,13 @@ initCharts();
 render();
 
 // --- PDF REPORT GENERATION ---
-function generatePDF() {
+// --- PDF REPORT GENERATION ---
+async function generatePDF() {
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF();
   const now = new Date().toLocaleString();
 
+  // 1. Calculate Live Executive Summary from the grid
   const booked = slots.filter((s) => s.status === "booked");
   const available = slots.filter((s) => s.status === "available");
   const disabled = slots.filter(
@@ -378,6 +412,7 @@ function generatePDF() {
   );
   const revenue = booked.length * 50;
 
+  // 2. Draw the Header and Summary
   doc.setFontSize(22);
   doc.setTextColor(15, 23, 42);
   doc.text("ParkEase Enterprise Report", 14, 20);
@@ -404,25 +439,45 @@ function generatePDF() {
   doc.text(`Total Estimated Revenue: Rs. ${revenue}`, 14, 68);
   doc.setTextColor(0);
 
-  const reportData = slots
-    .filter((s) => s.status !== "available")
-    .map((s) => [
-      s.id,
-      s.userName || "N/A",
-      s.status.toUpperCase(),
-      s.checkIn || "-",
-      s.checkOut || "-",
-    ]);
+  // 3. FETCH FULL HISTORY FOR THE TABLE
+  try {
+    const historyRes = await fetch(
+      "http://localhost:3000/api/admin/all-history",
+    );
+    const historyData = await historyRes.json();
 
-  doc.autoTable({
-    startY: 75,
-    head: [["Slot ID", "Driver Name", "Status", "Check-In", "Check-Out"]],
-    body: reportData,
-    theme: "grid",
-    headStyles: { fillColor: [79, 70, 229], textColor: [255, 255, 255] },
-    alternateRowStyles: { fillColor: [245, 247, 250] },
-    styles: { fontSize: 9 },
-  });
+    // Map the database history into PDF table rows
+    const reportData = historyData.map((h) => {
+      let d = new Date(h.booking_date);
+      let dateStr = d.toLocaleDateString();
 
-  doc.save(`ParkEase_Enterprise_Report_${new Date().getTime()}.pdf`);
+      return [
+        h.slot_id,
+        h.user_email || "Walk-in",
+        dateStr, // Added Date column for better reporting
+        h.check_in || "-",
+        h.check_out || "-",
+        h.status.toUpperCase(), // ACTIVE, CANCELLED, or COMPLETED
+      ];
+    });
+
+    // 4. Draw the Table
+    doc.autoTable({
+      startY: 75,
+      head: [
+        ["Slot ID", "User Email", "Date", "Check-In", "Check-Out", "Status"],
+      ],
+      body: reportData,
+      theme: "grid",
+      headStyles: { fillColor: [79, 70, 229], textColor: [255, 255, 255] },
+      alternateRowStyles: { fillColor: [245, 247, 250] },
+      styles: { fontSize: 9 },
+    });
+
+    // 5. Save the PDF
+    doc.save(`ParkEase_Enterprise_Report_${new Date().getTime()}.pdf`);
+  } catch (err) {
+    console.error("PDF Generation failed:", err);
+    alert("Failed to fetch history data for the report.");
+  }
 }
