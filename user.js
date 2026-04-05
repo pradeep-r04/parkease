@@ -1,5 +1,7 @@
+// --- GLOBAL VARIABLES ---
+let liveSlots = []; // Holds the live MySQL data
+let currentSelection = null; // Remembers which slot you clicked before confirming
 let selectedHours = 1;
-const get = () => JSON.parse(localStorage.getItem("parkingData")) || [];
 
 function setDuration(h) {
   selectedHours = h;
@@ -10,290 +12,282 @@ function setDuration(h) {
   updateTotal();
 }
 
-function render() {
-  const data = get();
-  ["P", "S"].forEach((side) => {
-    const el = document.getElementById("u_grid" + side);
-    if (!el) return;
-    el.innerHTML = "";
+// ==========================================
+// BACKEND API INTEGRATION
+// ==========================================
 
-    for (let r = 1; r <= 7; r++) {
-      for (let c = 1; c <= 5; c++) {
-        const slot = data.find((s) => s.side === side && s.r == r && s.c == c);
+async function render() {
+  try {
+    // 1. Fetch live data from MySQL!
+    const response = await fetch("http://localhost:3000/api/slots");
+    const dbData = await response.json();
 
-        if (slot) {
-          const cell = document.createElement("div");
-          cell.id = `slot-id-${slot.id}`;
-          cell.className = `slot ${slot.status}`;
+    // Map database columns to local layout logic
+    liveSlots = dbData.map((s) => ({ ...s, r: s.row_num, c: s.col_num }));
 
-          if (slot.status === "booked") {
-            cell.innerHTML = `<i class="fas fa-car car-icon"></i>`;
-          } else if (slot.status === "disabled-spot") {
-            cell.innerHTML = `<i class="fas fa-wheelchair" style="font-size:18px; margin-bottom:4px;"></i><span style="font-size:9px;">${slot.id}</span>`;
-          } else if (slot.status === "not-available") {
-            cell.innerHTML = `<i class="fas fa-ban" style="font-size:18px; margin-bottom:4px;"></i><span style="font-size:9px;">${slot.id}</span>`;
+    ["P", "S"].forEach((side) => {
+      const el = document.getElementById("u_grid" + side);
+      if (!el) return;
+      el.innerHTML = "";
+
+      for (let r = 1; r <= 7; r++) {
+        for (let c = 1; c <= 5; c++) {
+          const slot = liveSlots.find(
+            (s) => s.side === side && s.r == r && s.c == c,
+          );
+
+          if (slot) {
+            const cell = document.createElement("div");
+            cell.id = `slot-id-${slot.id}`;
+
+            // Check if this is the slot the user currently clicked on
+            let displayStatus = slot.status;
+            if (slot.id === currentSelection && slot.status === "available") {
+              displayStatus = "selected";
+            }
+
+            cell.className = `slot ${displayStatus}`;
+
+            // Render Icons based on status
+            if (displayStatus === "booked") {
+              cell.innerHTML = `<i class="fas fa-car car-icon"></i>`;
+            } else if (displayStatus === "disabled-spot") {
+              cell.innerHTML = `<i class="fas fa-wheelchair" style="font-size:18px; margin-bottom:4px;"></i><span style="font-size:9px;">${slot.id}</span>`;
+            } else if (displayStatus === "not-available") {
+              cell.innerHTML = `<i class="fas fa-ban" style="font-size:18px; margin-bottom:4px;"></i><span style="font-size:9px;">${slot.id}</span>`;
+            } else {
+              cell.innerHTML = `<span class="slot-empty-text">${slot.id}</span>`;
+            }
+
+            // Allow clicking only if available or already selected
+            if (slot.status === "available" || displayStatus === "selected") {
+              cell.onclick = () => toggleSelect(slot.id);
+              cell.style.cursor = "pointer";
+            } else {
+              cell.onclick = null;
+              cell.style.cursor = "not-allowed";
+            }
+
+            el.appendChild(cell);
           } else {
-            cell.innerHTML = `<span class="slot-empty-text">${slot.id}</span>`;
+            const placeholder = document.createElement("div");
+            placeholder.style.visibility = "hidden";
+            placeholder.style.width = "100%";
+            placeholder.style.height = "100%";
+            el.appendChild(placeholder);
           }
-
-          if (slot.status === "available" || slot.status === "selected") {
-            cell.onclick = () => toggleSelect(slot.id);
-            cell.style.cursor = "pointer";
-          } else {
-            cell.onclick = null;
-            cell.style.cursor = "not-allowed";
-          }
-
-          el.appendChild(cell);
-        } else {
-          const placeholder = document.createElement("div");
-          placeholder.style.visibility = "hidden";
-          placeholder.style.width = "100%";
-          placeholder.style.height = "100%";
-          el.appendChild(placeholder);
         }
       }
-    }
-  });
+    });
+
+    updateHistory(); // Make sure history checks against live data
+  } catch (err) {
+    console.error("Failed to load grid from MySQL:", err);
+  }
 }
 
 function toggleSelect(id) {
-  let data = get();
-  const slot = data.find((s) => s.id === id);
-  if (!slot) return;
+  const slot = liveSlots.find((s) => s.id === id);
+  if (!slot || slot.status !== "available") return;
 
-  if (slot.status !== "available" && slot.status !== "selected") return;
-
-  const newStatus = slot.status === "selected" ? "available" : "selected";
-  slot.status = newStatus;
-  localStorage.setItem("parkingData", JSON.stringify(data));
-
-  const cell = document.getElementById(`slot-id-${id}`);
-  if (cell) {
-    cell.className = `slot ${newStatus}`;
-    cell.innerHTML = `<span class="slot-empty-text">${id}</span>`;
+  // Toggle the selection locally
+  if (currentSelection === id) {
+    currentSelection = null; // Deselect
+  } else {
+    currentSelection = id; // Select new
   }
 
+  render(); // Redraw the grid to show the green selection
   updateTotal();
 }
 
 function updateTotal() {
-  const data = get();
-  const selCount = data.filter((s) => s.status === "selected").length;
+  const selCount = currentSelection ? 1 : 0; // User can only select 1 at a time now
   const totalDisplay = document.getElementById("total");
   if (totalDisplay) {
     totalDisplay.innerText = `₹${selCount * 50 * selectedHours}`;
   }
 }
 
-// --- UPDATED CONFIRM LOGIC (Saves to History Memory) ---
-function confirmBooking() {
-    const userEmail = localStorage.getItem('userEmail');
-    const driverNameInput = document.getElementById('driverName');
-    
-    let driverName = driverNameInput ? driverNameInput.value.trim() : "";
-    if(typeof capitalizeName === "function") driverName = capitalizeName(driverName); 
-    
-    let data = get();
-    const selected = data.filter(s => s.status === 'selected');
+// --- UPDATED CONFIRM LOGIC (Saves to MySQL) ---
+async function confirmBooking() {
+  const userEmail = localStorage.getItem("userEmail") || "guest@parkease.com";
+  const driverNameInput = document.getElementById("driverName");
 
-    if (!userEmail) return alert("Log in first!");
-    if (!selected.length) return alert("Select a spot first!");
-    if (!driverName) return alert("Please enter Driver Name!");
+  let driverName = driverNameInput ? driverNameInput.value.trim() : "";
+  if (typeof capitalizeName === "function")
+    driverName = capitalizeName(driverName);
 
-    const now = new Date();
-    const checkout = new Date(now.getTime() + selectedHours * 60 * 60 * 1000);
-    
-    // Grab the history memory bank
-    let history = JSON.parse(localStorage.getItem('bookingHistory')) || [];
+  if (!userEmail) return alert("Log in first!");
+  if (!currentSelection) return alert("Select a spot first!");
+  if (!driverName) return alert("Please enter Driver Name!");
 
-    data.forEach(s => {
-        if (s.status === 'selected') {
-            s.status = 'booked';
-            s.userName = driverName;
-            s.userEmail = userEmail;
-            s.checkIn = now.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
-            s.checkOut = checkout.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
-            
-            // NEW: Push to history bank
-            history.push({
-                slotId: s.id,
-                userEmail: userEmail,
-                date: now.toLocaleDateString(),
-                checkIn: s.checkIn,
-                checkOut: s.checkOut,
-                status: 'Active',
-                timestamp: now.getTime()
-            });
-        }
+  const now = new Date();
+  const checkout = new Date(now.getTime() + selectedHours * 60 * 60 * 1000);
+  const checkInTime = now.toLocaleTimeString("en-GB", {
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+  const checkOutTime = checkout.toLocaleTimeString("en-GB", {
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+
+  const bookingData = {
+    id: currentSelection,
+    userName: driverName,
+    userEmail: userEmail,
+    checkIn: checkInTime,
+    checkOut: checkOutTime,
+  };
+
+  try {
+    // Send Booking to MySQL!
+    const response = await fetch("http://localhost:3000/api/book", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(bookingData),
     });
 
-    localStorage.setItem('parkingData', JSON.stringify(data));
-    localStorage.setItem('bookingHistory', JSON.stringify(history)); // Save memory
-    
-    if(driverNameInput) driverNameInput.value = driverName;
-    
-    render(); 
-    updateHistory(); 
-    updateTotal();
-    alert("Booking Confirmed!");
-}
+    if (response.ok) {
+      // Update local history bank
+      let history = JSON.parse(localStorage.getItem("bookingHistory")) || [];
+      history.push({
+        slotId: currentSelection,
+        userEmail: userEmail,
+        date: now.toLocaleDateString(),
+        checkIn: checkInTime,
+        checkOut: checkOutTime,
+        status: "Active",
+        timestamp: now.getTime(),
+      });
+      localStorage.setItem("bookingHistory", JSON.stringify(history));
 
-// --- UPDATED HISTORY LOGIC (Separates Active and Past) ---
-function updateHistory() {
-    const userEmail = localStorage.getItem('userEmail');
-    const data = get(); 
-    let history = JSON.parse(localStorage.getItem('bookingHistory')) || [];
-    let historyChanged = false;
+      currentSelection = null; // Clear selection
+      if (driverNameInput) driverNameInput.value = driverName;
 
-    // 1. Check if Admin released a spot manually
-    history.forEach(h => {
-        if (h.userEmail === userEmail && h.status === 'Active') {
-            const stillActive = data.find(s => s.id === h.slotId && s.status === 'booked' && s.userEmail === userEmail);
-            if (!stillActive) {
-                h.status = 'Completed'; 
-                historyChanged = true;
-            }
-        }
-    });
-
-    if (historyChanged) {
-        localStorage.setItem('bookingHistory', JSON.stringify(history));
-    }
-
-    // 2. CLEAR AND REBUILD ACTIVE TABLE
-    const activeTable = document.getElementById('historyTable');
-    if (activeTable) {
-        activeTable.innerHTML = ""; // This clears the "stuck" rows
-        const myActive = history.filter(h => h.userEmail === userEmail && h.status === 'Active');
-        
-        if (myActive.length === 0) {
-            activeTable.innerHTML = '<tr><td colspan="4" class="table-empty">No active bookings</td></tr>';
-        } else {
-            myActive.sort((a,b) => b.timestamp - a.timestamp).forEach(h => {
-                activeTable.innerHTML += `
-                    <tr>
-                        <td><strong>${h.slotId}</strong></td>
-                        <td><span class="td-time-in">${h.checkIn}</span></td>
-                        <td><span class="td-time-out">${h.checkOut}</span></td>
-                        <td style="text-align: right;">
-                            <button onclick="cancelBooking('${h.slotId}')" class="btn-trash">Cancel</button>
-                        </td>
-                    </tr>`;
-            });
-        }
-    }
-
-    // 3. CLEAR AND REBUILD PAST TABLE
-    const pastTable = document.getElementById('pastHistoryTable');
-    if (pastTable) {
-        pastTable.innerHTML = ""; // This clears the "stuck" rows
-        const myPast = history.filter(h => h.userEmail === userEmail && h.status !== 'Active');
-        
-        if (myPast.length === 0) {
-            pastTable.innerHTML = '<tr><td colspan="5" class="table-empty">No past records</td></tr>';
-        } else {
-            myPast.sort((a,b) => b.timestamp - a.timestamp).forEach(h => {
-                let statusColor = h.status === 'Completed' ? '#34d399' : '#f87171';
-                pastTable.innerHTML += `
-                    <tr>
-                        <td><strong>${h.slotId}</strong></td>
-                        <td style="color: #94a3b8; font-size: 11px;">${h.date}</td>
-                        <td><span class="td-time-in">${h.checkIn}</span></td>
-                        <td><span class="td-time-out">${h.checkOut}</span></td>
-                        <td style="text-align: right; color: ${statusColor}; font-weight: 700; font-size: 11px;">
-                            ${h.status}
-                        </td>
-                    </tr>`;
-            });
-        }
-    }
-}
-
-// --- UPDATED CANCEL LOGIC (Marks as Cancelled in Memory) ---
-function cancelBooking(id) {
-    if (!window.confirm("Are you sure you want to cancel this booking?")) return;
-    
-    const userEmail = localStorage.getItem('userEmail');
-    let data = get(); // Get live parking data
-    let history = JSON.parse(localStorage.getItem('bookingHistory')) || [];
-
-    // 1. CLEAR FROM LIVE GRID (The visual slots)
-    // We look for the slot by ID, but also by parsing the ID if needed
-    let slot = data.find(s => s.id === id);
-    
-    // If not found by ID, try a manual deep search (Safety Net)
-    if (!slot && id.includes('-')) {
-        const parts = id.split('-'); // e.g., "P1-R2C3"
-        const side = parts[0].charAt(0); // "P"
-        const coords = parts[1].match(/\d+/g); // [2, 3]
-        if (coords) {
-            slot = data.find(s => s.side === side && s.r == coords[0] && s.c == coords[1]);
-        }
-    }
-
-    if (slot) {
-        slot.status = 'available';
-        slot.userEmail = null;
-        slot.userName = null;
-        slot.checkIn = null;
-        slot.checkOut = null;
-        console.log("Slot " + id + " has been cleared from grid.");
+      alert("Booking Confirmed & Saved to Cloud!");
+      render();
+      updateTotal();
     } else {
-        console.error("Could not find slot in data: " + id);
+      alert("Failed to book spot. It may have just been taken!");
+      render();
     }
-
-    // 2. UPDATE THE HISTORY BANK
-    let foundInHistory = false;
-    for (let i = history.length - 1; i >= 0; i--) {
-        if (history[i].slotId === id && history[i].userEmail === userEmail && history[i].status === 'Active') {
-            history[i].status = 'Cancelled';
-            foundInHistory = true;
-            break;
-        }
-    }
-
-    // If it wasn't in history (old data), add a new cancelled entry
-    if (!foundInHistory) {
-        history.push({
-            slotId: id,
-            userEmail: userEmail,
-            date: new Date().toLocaleDateString(),
-            status: 'Cancelled',
-            timestamp: new Date().getTime()
-        });
-    }
-
-    // 3. SAVE EVERYTHING
-    localStorage.setItem('parkingData', JSON.stringify(data));
-    localStorage.setItem('bookingHistory', JSON.stringify(history));
-
-    // 4. REFRESH THE UI
-    render();        // This clears the car from the grid
-    updateHistory(); // This updates the tables
+  } catch (err) {
+    console.error("Booking error:", err);
+  }
 }
 
-// --- UPDATED TAB SWITCHER ---
+// --- UPDATED CANCEL LOGIC (Cancels in MySQL) ---
+async function cancelBooking(id) {
+  if (!window.confirm("Are you sure you want to cancel this booking?")) return;
+
+  // FIX: Added the guest fallback here!
+  const userEmail = localStorage.getItem("userEmail") || "guest@parkease.com";
+
+  try {
+    // 1. Release the spot in MySQL
+    await fetch("http://localhost:3000/api/user-cancel", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id: id }),
+    });
+
+    // 2. Update the Local History Bank
+    let history = JSON.parse(localStorage.getItem("bookingHistory")) || [];
+    for (let i = history.length - 1; i >= 0; i--) {
+      if (
+        history[i].slotId === id &&
+        history[i].userEmail === userEmail &&
+        history[i].status === "Active"
+      ) {
+        history[i].status = "Cancelled";
+        break;
+      }
+    }
+    localStorage.setItem("bookingHistory", JSON.stringify(history));
+
+    render(); // Refresh the grid and tables
+  } catch (err) {
+    console.error("Cancel error:", err);
+  }
+}
+
+// --- HISTORY LOGIC (Checks against Live DB Data) ---
+async function updateHistory() {
+  const userEmail = localStorage.getItem("userEmail") || "guest@parkease.com";
+
+  try {
+    const response = await fetch(
+      `http://localhost:3000/api/history/${userEmail}`,
+    );
+    const dbHistory = await response.json();
+
+    const activeTable = document.getElementById("historyTable");
+    const pastTable = document.getElementById("pastHistoryTable");
+
+    if (!activeTable || !pastTable) return;
+
+    activeTable.innerHTML = "";
+    pastTable.innerHTML = "";
+
+    if (dbHistory.length === 0) {
+      activeTable.innerHTML =
+        '<tr><td colspan="4" class="table-empty">No bookings found</td></tr>';
+      return;
+    }
+
+    dbHistory.forEach((h) => {
+      if (h.status === "Active") {
+        activeTable.innerHTML += `
+          <tr>
+            <td><strong>${h.slot_id}</strong></td>
+            <td><span class="td-time-in">${h.check_in}</span></td>
+            <td><span class="td-time-out">${h.check_out}</span></td>
+            <td style="text-align: right;">
+              <button onclick="cancelBooking('${h.slot_id}')" class="btn-trash">Cancel</button>
+            </td>
+          </tr>`;
+      } else {
+        // 1. Let your browser automatically format it to your local time!
+        let d = new Date(h.booking_date);
+        let formattedDate = d.toLocaleDateString(); 
+
+        // 2. Set the color
+        let statusColor = h.status === "Completed" ? "#34d399" : "#f87171";
+
+        // 3. Draw the row
+        pastTable.innerHTML += `
+          <tr>
+            <td><strong>${h.slot_id}</strong></td>
+            <td style="color: #94a3b8; font-size: 11px;">${formattedDate}</td>
+            <td><span class="td-time-in">${h.check_in}</span></td>
+            <td><span class="td-time-out">${h.check_out}</span></td>
+            <td style="text-align: right; color: ${statusColor}; font-weight: 700; font-size: 11px;">
+              ${h.status}
+            </td>
+          </tr>`;
+      }
+    });
+  } catch (err) {
+    console.error("Database History Sync Failed:", err);
+  }
+}
+
+// --- TAB SWITCHER ---
 function switchUserView(viewName) {
-  // 1. Remove active class from all nav items
   document
     .querySelectorAll(".nav-item")
     .forEach((el) => el.classList.remove("active"));
-
-  // 2. Add active class to clicked nav item
   const activeNav = document.getElementById("nav-" + viewName);
   if (activeNav) activeNav.classList.add("active");
 
-  // 3. Hide all view panels
   document
     .querySelectorAll(".view-panel")
     .forEach((panel) => panel.classList.add("hidden"));
-
-  // 4. Show the selected view panel
   const activeView = document.getElementById("view-" + viewName);
   if (activeView) activeView.classList.remove("hidden");
 
-  // --- NEW: DYNAMIC HEADER TEXT ---
   const title = document.getElementById("portalTitle");
   const subtitle = document.getElementById("portalSubtitle");
 
@@ -309,9 +303,7 @@ function switchUserView(viewName) {
     if (subtitle)
       subtitle.innerText = "View and manage your active reservations.";
   }
-  // --------------------------------
 
-  // 5. Run specific tab logic
   if (viewName === "history") updateHistory();
   if (viewName === "profile") {
     document.getElementById("profName").value =
@@ -327,7 +319,6 @@ function switchUserView(viewName) {
 function startLiveClock() {
   const clockElement = document.getElementById("liveClock");
   if (!clockElement) return;
-
   setInterval(() => {
     const now = new Date();
     clockElement.innerText = now.toLocaleTimeString([], {
@@ -339,7 +330,7 @@ function startLiveClock() {
   }, 1000);
 }
 
-// --- UPDATED SAVE PROFILE ---
+// --- SAVE PROFILE ---
 function saveProfile() {
   const name = document.getElementById("profName").value.trim();
   if (!name) return alert("Please enter your name!");
@@ -348,24 +339,18 @@ function saveProfile() {
   localStorage.setItem("userCar", document.getElementById("profCar").value);
   localStorage.setItem("userPlate", document.getElementById("profPlate").value);
 
-  // Update sidebar immediately
   const profileDisplay = document.getElementById("userProfileEmail");
   if (profileDisplay) profileDisplay.innerText = name;
-
-  // Auto-fill the driver name input
   const driverInput = document.getElementById("driverName");
   if (driverInput) driverInput.value = name;
 
   alert("Profile saved successfully!");
-
-  // Switch to the Reserve tab automatically after saving
   switchUserView("reserve");
 }
 
-// --- UPDATED ON-LOAD (First Preference Logic) ---
+// --- ON-LOAD LOGIC ---
 window.onload = () => {
   render();
-  updateHistory();
   startLiveClock();
 
   const savedName = localStorage.getItem("userName");
@@ -383,9 +368,6 @@ window.onload = () => {
     driverInput.value = savedName;
   }
 
-  // "FIRST PREFERENCE" LOGIC:
-  // If they haven't saved a name yet, force them to the Profile Tab first.
-  // If they have, take them to the Reserve Tab.
   if (!savedName) {
     switchUserView("profile");
   } else {
@@ -393,11 +375,15 @@ window.onload = () => {
   }
 };
 
-// --- REAL-TIME SYNC MAGIC ---
-window.addEventListener("storage", (e) => {
-  if (e.key === "parkingData") {
-    render();
+// --- REAL-TIME SYNC MAGIC (Replaces localstorage event listener) ---
+// Silently fetches the live database every 3 seconds!
+// Silently fetches the live grid every 3 seconds!
+setInterval(() => {
+  render();
+
+  // Only refresh history if the history panel is currently visible
+  const historyView = document.getElementById("view-history");
+  if (historyView && !historyView.classList.contains("hidden")) {
     updateHistory();
-    updateTotal();
   }
-});
+}, 3000);

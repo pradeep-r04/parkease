@@ -1,24 +1,15 @@
 // --- SECURITY & LOGOUT ---
 if (localStorage.getItem("loggedInRole") !== "admin") {
-  window.location.href = "index.html"; // Kick out non-admins
+  window.location.href = "index.html";
 }
-
 function adminLogout() {
   localStorage.removeItem("loggedInRole");
   window.location.href = "index.html";
 }
 // -------------------------
 
-let slots = JSON.parse(localStorage.getItem("parkingData")) || [];
-
-// This cleans up any leftover slots from when the grid was 7 columns wide.
-const originalLength = slots.length;
-slots = slots.filter((s) => s.c <= 5 && s.r <= 7);
-if (slots.length !== originalLength) {
-  localStorage.setItem("parkingData", JSON.stringify(slots));
-}
-// ------------------------
-
+// Live slots array (pulled from DB)
+let slots = [];
 let selectedEmpty = [];
 let selectedSlots = [];
 let revenueChartInst = null;
@@ -50,7 +41,7 @@ function initCharts() {
       labels: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Today"],
       datasets: [
         {
-          label: "Revenue ($)",
+          label: "Revenue (Rs.)",
           data: [450, 600, 550, 800, 750, 900, 0],
           backgroundColor: "#4f46e5",
           borderRadius: 6,
@@ -73,12 +64,10 @@ function initCharts() {
   occupancyChartInst = new Chart(ctxOcc, {
     type: "doughnut",
     data: {
-      // ADDED 4TH LABEL
       labels: ["Booked", "Available", "Maintenance", "Accessible"],
       datasets: [
         {
-          data: [0, 0, 0, 0], // 4 data points
-          // RED, GREEN, GRAY, BLUE
+          data: [0, 0, 0, 0],
           backgroundColor: ["#ef4444", "#10b981", "#475569", "#3b82f6"],
           borderWidth: 0,
           cutout: "75%",
@@ -101,14 +90,10 @@ function initCharts() {
 function updateDashboard() {
   const booked = slots.filter((s) => s.status === "booked");
   const available = slots.filter((s) => s.status === "available");
-
-  // SPLIT THEM INTO TWO SEPARATE VARIABLES
   const maintenance = slots.filter((s) => s.status === "not-available");
   const accessible = slots.filter((s) => s.status === "disabled-spot");
-
   const currentRevenue = booked.length * 50;
 
-  // UPDATE ALL 6 KPI CARDS
   document.getElementById("kpi-total").innerText = slots.length;
   document.getElementById("kpi-active").innerText = booked.length;
   document.getElementById("kpi-available").innerText = available.length;
@@ -116,7 +101,6 @@ function updateDashboard() {
   document.getElementById("kpi-accessible").innerText = accessible.length;
   document.getElementById("kpi-revenue").innerText = `₹${currentRevenue}`;
 
-  // UPDATE CHART WITH ALL 4 CATEGORIES
   if (occupancyChartInst) {
     occupancyChartInst.data.datasets[0].data = [
       booked.length,
@@ -131,78 +115,96 @@ function updateDashboard() {
     revenueChartInst.update();
   }
 }
-function render() {
-  ["P", "S"].forEach((side) => {
-    const container = document.getElementById("grid" + side);
-    if (!container) return;
-    container.innerHTML = "";
-    for (let r = 1; r <= 7; r++) {
-      for (let c = 1; c <= 5; c++) {
-        const cell = document.createElement("div");
-        const s = slots.find((x) => x.side === side && x.r == r && x.c == c);
-        if (s) {
-          const isSelected = selectedSlots.includes(s.id);
 
-          // Determine Status Class
-          let statusClass = "";
-          if (s.status === "available") statusClass = "admin-bg-available";
-          else if (s.status === "booked") statusClass = "admin-bg-booked";
-          else if (s.status === "disabled-spot")
-            statusClass = "disabled-spot"; // NEW
-          else if (s.status === "not-available") statusClass = "not-available";
+// ==========================================
+// BACKEND API INTEGRATION (MySQL Sync)
+// ==========================================
 
-          cell.className = `slot ${statusClass} ${isSelected ? "active-box" : ""}`;
+async function render() {
+  try {
+    // 1. Fetch live data from MySQL
+    const response = await fetch("http://localhost:3000/api/slots");
+    const dbData = await response.json();
 
-          // Determine Icon
-          if (s.status === "booked") {
-            cell.innerHTML = `<i class="fas fa-car admin-car-icon"></i><span class="admin-slot-text">${s.id}</span>`;
-          } else if (s.status === "disabled-spot") {
-            cell.innerHTML = `<i class="fas fa-wheelchair admin-car-icon" style="font-size: 14px; margin-bottom: 4px;"></i><span class="admin-slot-text">${s.id}</span>`;
+    // Map database columns (row_num, col_num) to local logic (r, c)
+    slots = dbData.map((s) => ({ ...s, r: s.row_num, c: s.col_num }));
+
+    ["P", "S"].forEach((side) => {
+      const container = document.getElementById("grid" + side);
+      if (!container) return;
+      container.innerHTML = "";
+      for (let r = 1; r <= 7; r++) {
+        for (let c = 1; c <= 5; c++) {
+          const cell = document.createElement("div");
+          const s = slots.find((x) => x.side === side && x.r == r && x.c == c);
+
+          if (s) {
+            const isSelected = selectedSlots.includes(s.id);
+            let statusClass = "";
+            if (s.status === "available") statusClass = "admin-bg-available";
+            else if (s.status === "booked") statusClass = "admin-bg-booked";
+            else if (s.status === "disabled-spot")
+              statusClass = "disabled-spot";
+            else if (s.status === "not-available")
+              statusClass = "not-available";
+
+            cell.className = `slot ${statusClass} ${isSelected ? "active-box" : ""}`;
+
+            if (s.status === "booked") {
+              cell.innerHTML = `<i class="fas fa-car admin-car-icon"></i><span class="admin-slot-text">${s.id}</span>`;
+            } else if (s.status === "disabled-spot") {
+              cell.innerHTML = `<i class="fas fa-wheelchair admin-car-icon" style="font-size: 14px; margin-bottom: 4px;"></i><span class="admin-slot-text">${s.id}</span>`;
+            } else {
+              cell.innerHTML = `<span class="admin-slot-text">${s.id}</span>`;
+            }
+
+            cell.onclick = (e) => toggleSlot(e, s.id);
           } else {
-            cell.innerHTML = `<span class="admin-slot-text">${s.id}</span>`;
+            const key = `${side}-${r}-${c}`;
+            const isSelected = selectedEmpty.some((e) => e.key === key);
+            cell.className = `admin-cell ${isSelected ? "active-box" : ""}`;
+            cell.onclick = (e) => toggleEmpty(e, side, r, c, key);
           }
-
-          cell.onclick = (e) => toggleSlot(e, s.id);
-        } else {
-          const key = `${side}-${r}-${c}`;
-          const isSelected = selectedEmpty.some((e) => e.key === key);
-          cell.className = `admin-cell ${isSelected ? "active-box" : ""}`;
-          cell.onclick = (e) => toggleEmpty(e, side, r, c, key);
+          container.appendChild(cell);
         }
-        container.appendChild(cell);
+      }
+    });
+
+    // Update active bookings log
+    const booked = slots.filter((s) => s.status === "booked");
+    const table = document.getElementById("logTable");
+    const empty = document.getElementById("emptyMsg");
+
+    if (table) {
+      document.getElementById("activeCount").innerText =
+        `${booked.length} ACTIVE`;
+      table.innerHTML = "";
+      if (booked.length === 0) empty.classList.remove("hidden");
+      else {
+        empty.classList.add("hidden");
+        booked.forEach((s) => {
+          const row = document.createElement("tr");
+          row.innerHTML = `
+                        <td>
+                            <p class="td-slot-id">${s.id}</p>
+                            <p class="td-driver"><i class="fas fa-user"></i> ${s.userName || "Walk-in"}</p>
+                        </td>
+                        <td>
+                            <span class="td-time-in">IN: ${s.checkIn || "--:--"}</span>
+                            <span class="td-time-out">OUT: ${s.checkOut || "--:--"}</span>
+                        </td>
+                        <td style="text-align: right;">
+                            <button onclick="release('${s.id}')" class="btn-release">Release</button>
+                        </td>
+                    `;
+          table.appendChild(row);
+        });
       }
     }
-  });
-
-  const booked = slots.filter((s) => s.status === "booked");
-  const table = document.getElementById("logTable");
-  const empty = document.getElementById("emptyMsg");
-  if (!table) return;
-  document.getElementById("activeCount").innerText = `${booked.length} ACTIVE`;
-  table.innerHTML = "";
-  if (booked.length === 0) empty.classList.remove("hidden");
-  else {
-    empty.classList.add("hidden");
-    booked.forEach((s) => {
-      const row = document.createElement("tr");
-      row.innerHTML = `
-                <td>
-                    <p class="td-slot-id">${s.id}</p>
-                    <p class="td-driver"><i class="fas fa-user"></i> ${s.userName || "Walk-in"}</p>
-                </td>
-                <td>
-                    <span class="td-time-in">IN: ${s.checkIn || "--:--"}</span>
-                    <span class="td-time-out">OUT: ${s.checkOut || "--:--"}</span>
-                </td>
-                <td style="text-align: right;">
-                    <button onclick="release('${s.id}')" class="btn-release">Release</button>
-                </td>
-            `;
-      table.appendChild(row);
-    });
+    updateDashboard();
+  } catch (err) {
+    console.error("Failed to load grid from MySQL:", err);
   }
-  localStorage.setItem("parkingData", JSON.stringify(slots));
-  updateDashboard();
 }
 
 function toggleSlot(e, id) {
@@ -266,11 +268,13 @@ function show(mode) {
     .classList.toggle("hidden", mode !== "edit");
 }
 
-function saveNew() {
+// Sends New Slots to MySQL
+async function saveNew() {
+  let newSlotsToDb = [];
   if (selectedEmpty.length === 1) {
     const id = document.getElementById("slotId").value.trim().toUpperCase();
     if (!id || slots.some((s) => s.id === id)) return;
-    slots.push({
+    newSlotsToDb.push({
       side: selectedEmpty[0].side,
       r: selectedEmpty[0].r,
       c: selectedEmpty[0].c,
@@ -280,82 +284,100 @@ function saveNew() {
   } else {
     selectedEmpty.forEach((e) => {
       const autoId = `${e.side}${e.side === "P" ? "1" : "2"}-R${e.r}C${e.c}`;
-      if (!slots.some((s) => s.id === autoId))
-        slots.push({
+      if (!slots.some((s) => s.id === autoId)) {
+        newSlotsToDb.push({
           side: e.side,
           r: e.r,
           c: e.c,
           id: autoId,
           status: "available",
         });
+      }
+    });
+  }
+
+  if (newSlotsToDb.length > 0) {
+    await fetch("http://localhost:3000/api/add-slots", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ newSlots: newSlotsToDb }),
     });
   }
   selectedEmpty = [];
   updatePanel();
-  render();
+  render(); // Fetch fresh data from DB
 }
 
-function update() {
+// Sends Status Updates to MySQL (e.g., setting a spot to Maintenance)
+async function update() {
   const newStatus = document.getElementById("statusSelect").value;
-  slots = slots.map((s) =>
-    selectedSlots.includes(s.id) ? { ...s, status: newStatus } : s,
-  );
+  await fetch("http://localhost:3000/api/update-slots", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ ids: selectedSlots, status: newStatus }),
+  });
+
   selectedSlots = [];
   updatePanel();
   render();
 }
 
-function remove() {
-  slots = slots.filter((s) => !selectedSlots.includes(s.id));
+// Deletes Slots from MySQL
+async function remove() {
+  if (!confirm("Are you sure you want to permanently delete these slots?"))
+    return;
+
+  await fetch("http://localhost:3000/api/delete-slots", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ ids: selectedSlots }),
+  });
+
   selectedSlots = [];
   updatePanel();
   render();
 }
 
-function release(id) {
-  slots = slots.map((s) =>
-    s.id === id
-      ? {
-          ...s,
-          status: "available",
-          checkIn: null,
-          checkOut: null,
-          userName: null,
-        }
-      : s,
-  );
+// Releases a booked slot back to available in MySQL
+async function release(id) {
+  if (!confirm(`Release slot ${id}?`)) return;
+
+  await fetch("http://localhost:3000/api/release", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ id: id }),
+  });
+
   render();
 }
 
+// --- CLOCK & LIVE POLLING ---
 setInterval(() => {
   const clock = document.getElementById("liveClock");
   if (clock) clock.innerText = new Date().toLocaleTimeString("en-GB");
 }, 1000);
 
-window.addEventListener("storage", () => {
-  slots = JSON.parse(localStorage.getItem("parkingData")) || [];
+// Silently refresh the grid every 3 seconds to get bookings from users!
+setInterval(() => {
   render();
-});
+}, 3000);
 
 initCharts();
 render();
 
-// --- PDF REPORT GENERATION ---
 // --- PDF REPORT GENERATION ---
 function generatePDF() {
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF();
   const now = new Date().toLocaleString();
 
-  // 1. Calculate Live Stats (FIXED MATH: Now multiplying by 50)
   const booked = slots.filter((s) => s.status === "booked");
   const available = slots.filter((s) => s.status === "available");
   const disabled = slots.filter(
     (s) => s.status === "not-available" || s.status === "disabled-spot",
   );
-  const revenue = booked.length * 50; 
+  const revenue = booked.length * 50;
 
-  // 2. Title and Header
   doc.setFontSize(22);
   doc.setTextColor(15, 23, 42);
   doc.text("ParkEase Enterprise Report", 14, 20);
@@ -365,7 +387,6 @@ function generatePDF() {
   doc.text(`Generated on: ${now}`, 14, 28);
   doc.text("Status: Confidential - System Administrator Access Only", 14, 33);
 
-  // 3. EXECUTIVE SUMMARY SECTION
   doc.setFontSize(12);
   doc.setTextColor(0);
   doc.setFont(undefined, "bold");
@@ -378,13 +399,11 @@ function generatePDF() {
   doc.text(`Available Spots: ${available.length}`, 80, 53);
   doc.text(`Disabled/Maintenance Spots: ${disabled.length}`, 80, 59);
 
-  // Highlight Revenue (FIXED SYMBOL: Using Rs. so jsPDF can read it)
   doc.setFont(undefined, "bold");
   doc.setTextColor(16, 185, 129);
   doc.text(`Total Estimated Revenue: Rs. ${revenue}`, 14, 68);
   doc.setTextColor(0);
 
-  // 4. Filter data for the table
   const reportData = slots
     .filter((s) => s.status !== "available")
     .map((s) => [
@@ -395,7 +414,6 @@ function generatePDF() {
       s.checkOut || "-",
     ]);
 
-  // 5. Generate Table
   doc.autoTable({
     startY: 75,
     head: [["Slot ID", "Driver Name", "Status", "Check-In", "Check-Out"]],
@@ -406,6 +424,5 @@ function generatePDF() {
     styles: { fontSize: 9 },
   });
 
-  // 6. Save File
   doc.save(`ParkEase_Enterprise_Report_${new Date().getTime()}.pdf`);
 }
