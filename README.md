@@ -1,3 +1,8 @@
+![HTML](https://img.shields.io/badge/HTML-5-orange)
+![CSS](https://img.shields.io/badge/CSS-3-blue)
+![JavaScript](https://img.shields.io/badge/JavaScript-yellow)
+![Firebase](https://img.shields.io/badge/Firebase-Backend-orange)
+
 # 🚗 ParkEase - Parking Management System
 ParkEase is a web-based application that allows users to pre-book parking slots online, reducing congestion and saving time. The system provides separate modules for Users and Admins, each with secure login and registration functionality.
 
