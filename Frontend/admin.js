@@ -123,7 +123,7 @@ function updateDashboard() {
 async function render() {
   try {
     // 1. Fetch live data from MySQL
-    const response = await fetch("http://localhost:3000/api/slots");
+    const response = await fetch("https://parkease-backend-m234.onrender.com/api/slots");
     const dbData = await response.json();
 
     // Map database columns (row_num, col_num) to local logic (r, c)
@@ -174,7 +174,7 @@ async function render() {
     // NEW: FETCH REAL HISTORY FOR ADMIN TABLE
     // ==========================================
     const historyRes = await fetch(
-      "http://localhost:3000/api/admin/all-history",
+      "https://parkease-backend-m234.onrender.com/api/admin/all-history",
     );
     const historyData = await historyRes.json();
 
@@ -329,7 +329,7 @@ async function saveNew() {
   }
 
   if (newSlotsToDb.length > 0) {
-    await fetch("http://localhost:3000/api/add-slots", {
+    await fetch("https://parkease-backend-m234.onrender.com/api/add-slots", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ newSlots: newSlotsToDb }),
@@ -343,7 +343,7 @@ async function saveNew() {
 // Sends Status Updates to MySQL (e.g., setting a spot to Maintenance)
 async function update() {
   const newStatus = document.getElementById("statusSelect").value;
-  await fetch("http://localhost:3000/api/update-slots", {
+  await fetch("https://parkease-backend-m234.onrender.com/api/update-slots", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ ids: selectedSlots, status: newStatus }),
@@ -359,7 +359,7 @@ async function remove() {
   if (!confirm("Are you sure you want to permanently delete these slots?"))
     return;
 
-  await fetch("http://localhost:3000/api/delete-slots", {
+  await fetch("https://parkease-backend-m234.onrender.com/api/delete-slots", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ ids: selectedSlots }),
@@ -374,7 +374,7 @@ async function remove() {
 async function release(id) {
   if (!confirm(`Release slot ${id}?`)) return;
 
-  await fetch("http://localhost:3000/api/release", {
+  await fetch("https://parkease-backend-m234.onrender.com/api/release", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ id: id }),
@@ -442,7 +442,7 @@ async function generatePDF() {
   // 3. FETCH FULL HISTORY FOR THE TABLE
   try {
     const historyRes = await fetch(
-      "http://localhost:3000/api/admin/all-history",
+      "https://parkease-backend-m234.onrender.com/api/admin/all-history",
     );
     const historyData = await historyRes.json();
 

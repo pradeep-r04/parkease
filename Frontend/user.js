@@ -19,7 +19,7 @@ function setDuration(h) {
 async function render() {
   try {
     // 1. Fetch live data from MySQL!
-    const response = await fetch("http://localhost:3000/api/slots");
+    const response = await fetch("https://parkease-backend-m234.onrender.com/api/slots");
     const dbData = await response.json();
 
     // Map database columns to local layout logic
@@ -143,7 +143,7 @@ async function confirmBooking() {
 
   try {
     // Send Booking to MySQL!
-    const response = await fetch("http://localhost:3000/api/book", {
+    const response = await fetch("https://parkease-backend-m234.onrender.com/api/book", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(bookingData),
@@ -187,7 +187,7 @@ async function cancelBooking(id) {
 
   try {
     // 1. Release the spot in MySQL
-    await fetch("http://localhost:3000/api/user-cancel", {
+    await fetch("https://parkease-backend-m234.onrender.com/api/user-cancel", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ id: id }),
@@ -219,7 +219,7 @@ async function updateHistory() {
 
   try {
     const response = await fetch(
-      `http://localhost:3000/api/history/${userEmail}`,
+      `https://parkease-backend-m234.onrender.com/api/history/${userEmail}`,
     );
     const dbHistory = await response.json();
 
