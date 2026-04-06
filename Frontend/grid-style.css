@@ -983,14 +983,8 @@ select {
 
 /* Dark glass overlay to keep text readable */
 .bg-image-wrapper::after {
-    content: "";
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(15, 23, 42, 0.85); 
-    z-index: -1;
+    /* Lower the opacity (the last number) from 0.85 down to 0.2 or 0.3 */
+    background: rgba(15, 23, 42, 0.2) !important; 
 }
 
 /* --- TEXT CAPITALIZATION --- */
@@ -1075,4 +1069,94 @@ select {
         width: calc(100% - 60px) !important;
         padding: 15px !important;
     }
+}
+
+/* =========================================================
+   HEADER VISIBILITY FIX
+   ========================================================= */
+/* Add a dark, multi-layered shadow behind white headers */
+.page-title, .page-subtitle, .step-title, .step-label {
+    text-shadow: 
+        0 2px 4px rgba(0, 0, 0, 0.9),  /* Sharp dark outline */
+        0 0 15px rgba(0, 0, 0, 0.8), /* Medium dark glow */
+        0 0 30px rgba(0, 0, 0, 0.6) !important; /* Wide dark spread */
+}
+
+/* Make the subtitles slightly thicker so they don't fade away */
+.page-subtitle, .step-label {
+    font-weight: 700 !important;
+    color: #e2e8f0 !important; /* A slightly brighter silver/white */
+}
+
+/* Catch the User Profile Headers */
+.profile-title, .profile-subtitle, 
+.user-header h1, .user-header h2, .user-header p, .user-header span {
+    color: #0f172a !important; /* Deep navy blue text */
+    text-shadow: 
+        0 0 15px rgba(255, 255, 255, 1), 
+        0 0 30px rgba(255, 255, 255, 0.9), 
+        0 0 5px white !important; /* Strong white glow */
+}
+
+/* =========================================================
+   ADMIN DASHBOARD FIXES (DARK THEME)
+   ========================================================= */
+/* Fix Faded KPI Labels and Chart Titles */
+.kpi-label, .chart-title, .table-title {
+    color: #ffffff !important; /* Pure, bright white */
+    opacity: 1 !important; /* Removes any fade effect */
+    font-weight: 800 !important; /* Makes the font thicker and bolder */
+    letter-spacing: 1px !important; /* Spreads letters out for easier reading */
+    text-shadow: 0 2px 5px rgba(0, 0, 0, 0.5) !important; /* Subtle dark drop-shadow to pop off the glass */
+}
+
+/* =========================================================
+   FIX FADED KPI ICONS (RESTORE COLORS)
+   ========================================================= */
+.kpi-icon, .kpi-card i, .kpi-card svg, .kpi-card img {
+    /* Notice we removed the "color: white" line! */
+    opacity: 1 !important; /* Keeps them fully visible */
+    
+    /* We use 'brightness' to make their natural colors pop, and a dark shadow to lift them off the glass */
+    filter: brightness(1.5) drop-shadow(0 4px 10px rgba(0, 0, 0, 0.4)) !important; 
+}
+
+/* 1. Make ONLY the main page headers huge (Leaves the logo alone!) */
+body.user-page .view-panel .page-title, 
+body.user-page .step-section .page-title {
+    font-size: 42px !important; /* Huge text! */
+    font-weight: 900 !important; /* Extra thick */
+    text-transform: uppercase !important; /* All caps */
+    margin-bottom: 8px !important; 
+}
+
+/* 2. Reset the Logo back to its normal sleek size */
+body.user-page .logo-title {
+    font-size: 24px !important; /* Normal logo size */
+    font-weight: 800 !important;
+    text-transform: none !important; /* Removes the forced ALL-CAPS */
+}
+
+/* 3. Fix the "Pratik Maurya" subtitle under the logo */
+body.user-page .logo-subtitle {
+    font-size: 12px !important; /* Normal size */
+    letter-spacing: 1px !important;
+    font-weight: 600 !important;
+    opacity: 0.7 !important;
+}
+
+/* 4. Make sure "SELECT YOUR SPACE" stays as a subtitle */
+body.user-page .step-title {
+    font-size: 28px !important; 
+    font-weight: 800 !important;
+}
+
+/* Fix the faded clock on the User side */
+body.user-page .live-clock-pill {
+    color: #ffffff !important; /* Pure, bright white text */
+    font-weight: 800 !important; /* Make the numbers thicker */
+    opacity: 1 !important; /* Remove any fade effect */
+    background: rgba(15, 23, 42, 0.7) !important; /* Darken the pill background slightly so the white text pops */
+    border: 1px solid rgba(255, 255, 255, 0.2) !important; /* Add a subtle, premium glass border */
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.8) !important; /* Drop-shadow to guarantee readability */
 }
