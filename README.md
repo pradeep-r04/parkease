@@ -44,14 +44,19 @@ ParkEase is a web-based application that allows users to pre-book parking slots 
 ## Screenshots
 ### 1. Login Page:-
 <img width="1902" height="912" alt="Image" src="https://github.com/user-attachments/assets/270c4c8b-d214-4b8e-b68b-8f0a2e346cda" />
+
 ### 2. Sign Up Page: -
 <img width="1903" height="910" alt="Image" src="https://github.com/user-attachments/assets/41a77ea0-fcb2-4d64-a123-4a8ffb4e06d9" />
+
 ### 3. Dashboard: -
 <img width="1900" height="887" alt="Image" src="https://github.com/user-attachments/assets/5c13006f-aa16-49f6-a7a3-c6b06e61d4d2" />
+
 ### 4. Contact Us Page: -
 <img width="1902" height="910" alt="Image" src="https://github.com/user-attachments/assets/4dfd7e7e-5455-4089-b56f-0983ab73c11c" />
+
 ### 5. Terms & Conditions page: -
 <img width="1898" height="907" alt="Image" src="https://github.com/user-attachments/assets/edd854c0-3448-4274-9488-b11323b54e70" />
+
 ### 6. Footer: -
 <img width="1899" height="908" alt="Image" src="https://github.com/user-attachments/assets/89d1c354-f7d5-4041-a424-aa147d4a4b2c" />
 
