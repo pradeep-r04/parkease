@@ -3,7 +3,14 @@ const mysql = require("mysql2");
 const cors = require("cors");
 
 const app = express();
-app.use(cors());
+
+// Cloud-optimized CORS
+app.use(cors({
+    origin: "*", // This allows your Render Frontend to talk to this Backend
+    methods: ["GET", "POST", "PUT", "DELETE"],
+    allowedHeaders: ["Content-Type", "Authorization"]
+}));
+
 app.use(express.json());
 
 // 1. Database Connection
@@ -290,7 +297,9 @@ app.get('/api/admin/all-history', (req, res) => {
 });
 
 // Start the Server
-const PORT = 3000;
-app.listen(PORT, () => {
-  console.log(`🚀 Server running on http://localhost:${PORT}`);
+// This tells the app: "Use Render's assigned port, OR 3000 if running locally"
+const PORT = process.env.PORT || 3000;
+
+app.listen(PORT, '0.0.0.0', () => {
+    console.log(`🚀 Server is live and listening on port ${PORT}`);
 });
