@@ -386,7 +386,13 @@ async function release(id) {
 // --- CLOCK & LIVE POLLING ---
 setInterval(() => {
   const clock = document.getElementById("liveClock");
-  if (clock) clock.innerText = new Date().toLocaleTimeString("en-GB");
+  if (clock) {
+    // en-US and hour12: true gives you the standard AM/PM format!
+    clock.innerText = new Date().toLocaleTimeString("en-US", { 
+        timeZone: "Asia/Kolkata",
+        hour12: true 
+    });
+  }
 }, 1000);
 
 // Silently refresh the grid every 3 seconds to get bookings from users!
