@@ -62,7 +62,7 @@ ParkEase is a web-based application that allows users to pre-book parking slots 
 
 
 ## 🌐 Live Demo
-https://parkease-4.netlify.app
+https://parkease-frontend-c5ff.onrender.com
 
 ## 👥 Collaborators
 
