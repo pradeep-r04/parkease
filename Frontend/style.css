@@ -876,3 +876,310 @@ html {
   from { opacity: 0; transform: translateY(15px); }
   to { opacity: 1; transform: translateY(0); }
 }
+
+
+
+/* css for index page */
+/* Add this to your existing style.css or replace the public facing styles */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Inter', sans-serif;
+}
+
+body {
+    background-color: #f8fafc;
+    color: #1e293b;
+}
+
+/* Navbar */
+.navbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 50px;
+    background:#0f172a;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+}
+
+.logo {
+    font-size: 24px;
+    font-weight: 700;
+    color: #0f172a;
+}
+
+.logo i { color: #4f46e5; }
+
+.nav-links {
+    display: flex;
+    gap: 20px;
+    align-items: center;
+}
+
+.nav-item {
+    text-decoration: none;
+    color: #475569;
+    font-weight: 600;
+}
+
+.btn-primary-outline {
+    padding: 10px 20px;
+    border: 2px solid #4f46e5;
+    color: #4f46e5;
+    border-radius: 50px;
+    text-decoration: none;
+    font-weight: 600;
+    transition: 0.3s;
+}
+
+.btn-primary-outline:hover {
+    background: #4f46e5;
+    color: white;
+}
+
+/* Hero Section */
+.hero-section {
+    padding: 60px 20px;
+    display: flex;
+    justify-content: center;
+}
+
+.search-container {
+    background: linear-gradient(135deg, #e0f2fe 0%, #f0fdfa 100%);
+    border-radius: 20px;
+    padding: 50px;
+    width: 100%;
+    max-width: 1000px;
+    text-align: left;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+}
+
+.search-container h1 {
+    font-size: 36px;
+    margin-bottom: 10px;
+    color: #0f172a;
+}
+
+.search-container p {
+    color: #475569;
+    margin-bottom: 30px;
+}
+
+/* Search Box Form */
+.search-box {
+    display: flex;
+    background: white;
+    padding: 15px;
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+    gap: 15px;
+    align-items: flex-end;
+}
+
+.input-group {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+}
+
+.input-group label {
+    font-size: 12px;
+    font-weight: 600;
+    color: #64748b;
+    margin-bottom: 5px;
+}
+
+.input-with-icon {
+    display: flex;
+    align-items: center;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    padding: 10px;
+}
+
+.input-with-icon i { margin-right: 10px; color: #94a3b8; }
+.input-with-icon input, .input-group input[type="date"] {
+    border: none;
+    outline: none;
+    width: 100%;
+    font-size: 16px;
+    color: #0f172a;
+}
+
+.input-group input[type="date"] {
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    padding: 10px;
+}
+
+.btn-search {
+    background: #ef4444; /* Red button like the screenshot */
+    color: white;
+    border: none;
+    padding: 15px 30px;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: 0.3s;
+    height: 45px;
+}
+
+.btn-search:hover { background: #dc2626; }
+
+/* Popular Locations */
+.popular-locations {
+    max-width: 1000px;
+    margin: 40px auto;
+    padding: 0 20px;
+}
+
+.popular-locations h2 { margin-bottom: 20px; color: #0f172a; }
+
+.locations-grid {
+    display: flex;
+    gap: 30px;
+}
+
+.location-card {
+    background: white;
+    padding: 30px;
+    border-radius: 15px;
+    text-align: center;
+    flex: 1;
+    cursor: pointer;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.03);
+    transition: 0.3s;
+}
+
+.location-card i { color: #475569; margin-bottom: 15px; }
+.location-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0,0,0,0.08);
+}
+.location-card:hover i { color: #4f46e5; }
+
+/*select-spot page styles*/
+/* --- Public Grid Selection Page --- */
+.selection-container {
+    max-width: 1000px;
+    margin: 40px auto;
+    padding: 0 20px;
+}
+
+.selection-header {
+    text-align: center;
+    margin-bottom: 40px;
+}
+
+.selection-header h2 { font-size: 28px; color: #0f172a; margin-bottom: 10px; }
+.selection-header p { color: #4f46e5; font-weight: 600; font-size: 16px; }
+
+.public-grid-wrapper {
+    display: flex;
+    gap: 40px;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-bottom: 100px; /* Space for the bottom bar */
+}
+
+.grid-section h3 {
+    text-align: center;
+    color: #475569;
+    margin-bottom: 20px;
+}
+
+.public-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 60px);
+    gap: 12px;
+    background: white;
+    padding: 20px;
+    border-radius: 15px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+}
+
+.spot {
+    width: 60px;
+    height: 80px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 14px;
+    cursor: pointer;
+    transition: 0.2s;
+    border: 2px solid transparent;
+}
+
+/* Spot Status Colors */
+.spot-available {
+    background: #f1f5f9;
+    color: #475569;
+    border: 2px solid #e2e8f0;
+}
+
+.spot-available:hover {
+    border-color: #4f46e5;
+    background: #e0e7ff;
+}
+
+.spot-selected {
+    background: #4f46e5;
+    color: white;
+    border-color: #4f46e5;
+    transform: scale(1.05);
+    box-shadow: 0 4px 10px rgba(79, 70, 229, 0.4);
+}
+
+.spot-booked, .spot-maintenance {
+    background: #e2e8f0;
+    color: #94a3b8;
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
+/* Bottom Action Bar */
+.booking-bar {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    background: white;
+    padding: 20px 50px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 -5px 20px rgba(0,0,0,0.1);
+    transition: transform 0.3s ease;
+}
+
+.booking-bar.hidden {
+    transform: translateY(100%); /* Slides off screen when hidden */
+}
+
+.slot-badge {
+    background: #4f46e5;
+    color: white;
+    padding: 8px 15px;
+    border-radius: 8px;
+    font-weight: bold;
+    font-size: 18px;
+    margin-right: 15px;
+}
+
+.price-label { font-size: 18px; color: #475569; font-weight: 600; }
+
+.btn-continue {
+    background: #10b981;
+    color: white;
+    border: none;
+    padding: 15px 30px;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+}
+.btn-continue:hover { background: #059669; }

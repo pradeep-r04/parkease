@@ -1,81 +1,83 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ParkEase | Login</title>
-  <link rel="icon" href="logo.png" type="image/icon type">
-
-  <!-- Google Font -->
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
-
-  <!-- Font Awesome -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-
-  <!-- CSS -->
-  <link rel="stylesheet" href="style.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ParkEase | Find & Book Parking</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+    <script src="app.js"></script>
 </head>
 <body>
-<!-- 🌐 NAVBAR -->
-<nav class="top-navbar">
-  <div class="logo">
+
+    <nav class="navbar">
+        <div class="logo">
     <a href="index.html" class="logo">
     <img src="logo.png" alt="ParkEase Logo"></a>
     <span>ParkEase</span>
   </div>
-
-</nav>
-
-<!-- 🔐 LOGIN SECTION -->
-<div class="login-wrapper with-navbar">
-  <div class="login-container animate-fade">
-
-    <!-- LEFT INFO -->
-    <div class="login-left">
-      <h1>Welcome Back 👋</h1>
-      <p>
-        Log in to manage your parking slots, bookings,
-        and real-time availability with ease.
-      </p>
-
-      <div class="login-features">
-        <span>🔐 Secure</span>
-        <span>⚡ Real-Time</span>
-        <span>🚗 Smart Parking</span>
-      </div>
-    </div>
-
-    <!-- RIGHT FORM -->
-    <div class="login-right">
-      <div class="card slide-up">
-        <h2>Login to your account</h2>
-        <p class="subtitle">Glad to see you again!</p>
-
-        <div class="input-group">
-          <i class="fa fa-envelope"></i>
-          <input type="email" id="email" placeholder="Email Address" required>
+        <div class="nav-links">
+            <a href="login.html" class="btn-primary-outline">Login / Sign Up</a>
         </div>
+    </nav>
 
-        <div class="input-group">
-          <i class="fa fa-lock"></i>
-          <input type="password" id="password" placeholder="Password" required>
+    <section class="hero-section">
+        <div class="search-container">
+            <h1>Book a parking space now!</h1>
+            <p>Secure, affordable, and convenient parking across the city.</p>
+            
+            <form class="search-box" id="searchForm">
+                <div class="input-group">
+                    <label>Location</label>
+                    <div class="input-with-icon">
+                        <i class="fas fa-map-marker-alt"></i>
+                        <input type="text" id="locationInput" placeholder="e.g. Delhi, India" required>
+                    </div>
+                </div>
+
+                <div class="input-group">
+                    <label>Start Date</label>
+                    <input type="date" id="startDate" required>
+                </div>
+
+                <div class="input-group">
+                    <label>End Date</label>
+                    <input type="date" id="endDate" required>
+                </div>
+
+                <button type="submit" class="btn-search">Search</button>
+            </form>
         </div>
-
-        <button class="btn" onclick="login()">Login</button>
-
-        <div class="link">
-          <a href="#" onclick="forgotPassword()">Forgot Password?</a>
+    </section>
+<!--  Popular Locations Section 
+    <section class="popular-locations">
+        <h2>Popular locations</h2>
+        <div class="locations-grid">
+            <div class="location-card" onclick="quickSearch('Bangalore')">
+                <i class="fas fa-city fa-2x"></i>
+                <p>Bangalore</p>
+            </div>
+            <div class="location-card" onclick="quickSearch('Mumbai')">
+                <i class="fas fa-building fa-2x"></i>
+                <p>Mumbai</p>
+            </div>
+            <div class="location-card" onclick="quickSearch('Delhi')">
+                <i class="fas fa-monument fa-2x"></i>
+                <p>Delhi</p>
+            </div>
+            <div class="location-card" onclick="quickSearch('Pune')">
+                <i class="fas fa-university fa-2x"></i>
+                <p>Pune</p>
+            </div>
         </div>
+    </section>
 
-        <div class="link">
-          Don’t have an account?
-          <a href="signup.html">Sign up</a>
-        </div>
-      </div>
-    </div>
+    <script src="app.js"></script>
+</body>
+</html>
+-->
 
-  </div>
-</div>
 <!-- 🌙 FOOTER -->
 <footer class="footer">
   <div class="footer-container">
