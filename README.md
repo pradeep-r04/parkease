@@ -72,8 +72,8 @@ https://parkease-frontend-c5ff.onrender.com
 </a>  
 
 <br>
-<a href="https://github.com/Pratik100000">
-  <img src="https://github.com/Pratik100000.png" width="80px;" />
+<a href="https://github.com/Pratik10000">
+  <img src="https://github.com/Pratik10000.png" width="80px;" />
 </a>  
 
 
