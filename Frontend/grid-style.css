@@ -13,10 +13,44 @@ html {
     min-height: 100vh;
 }
 
+/* =========================================================
+   PROFESSIONAL BLURRED BACKGROUND SYSTEM
+   ========================================================= */
 body {
-    background-color: transparent !important; /* This makes the body clear so your image shows through! */
-    color: #f8fafc;
+    margin: 0;
+    padding: 0;
+    font-family: 'Inter', sans-serif;
+    color: white;
+    min-height: 100vh; /* Fallback premium slate dark color */
+    position: relative;
     overflow-x: hidden;
+}
+
+/* This creates a dedicated background layer that sits underneath your UI */
+body::before {
+    content: "";
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    
+    /* 1. Your image + a professional dark gradient tint */
+    background: linear-gradient(
+        rgba(15, 23, 42, 0.5), 
+        rgba(15, 23, 42, 0.85)
+    ), url('your-background-image.jpg') no-repeat center center fixed; /* Keep your existing image path here */
+    background-size: cover;
+    
+    /* 2. The Blur Effect */
+    filter: blur(12px); /* Higher number = more blur. 10px-15px is sweet spot */
+    
+    /* 3. The Edge Fix */
+    transform: scale(1.05); /* Prevents ugly white/distorted edges caused by blurring */
+    
+    /* 4. Keep it in the back */
+    z-index: -1; 
+    pointer-events: none; /* Stops it from blocking mouse clicks */
 }
 
 button {
