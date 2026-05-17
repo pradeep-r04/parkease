@@ -396,7 +396,7 @@ async function sendChatMessage() {
 
     try {
         // 2. Hit your Render backend endpoint
-        const response = await fetch("https://parkease-backend-m234.onrender.com/api/chat", {
+        const response = await fetch("https://your-new-backend-url.onrender.com/api/chat", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ message })
