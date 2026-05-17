@@ -311,9 +311,9 @@ app.post('/api/chat', async (req, res) => {
 
     try {
         const model = genAI.getGenerativeModel({ 
-            model: "gemini-1.5-flash", // Stable, lightning-fast model for chat
-            systemInstruction: "You are ParkEase AI, a helpful virtual assistant for an automated parking reservation platform. Answer short, professional queries about pricing (₹20/hr), operations, and spot features. Be concise."
-        });
+          model: "gemini-2.5-flash", // Upgraded to a live, supported stable version
+          systemInstruction: "You are ParkEase AI, a helpful virtual assistant for an automated parking reservation platform. Answer short, professional queries about pricing (₹20/hr), operations, and spot features. Be concise."
+  });
 
         const result = await model.generateContent(userMessage);
         const responseText = result.response.text();
