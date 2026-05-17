@@ -377,3 +377,36 @@ setInterval(() => {
     updateHistory();
   }
 }, 3000);
+
+function toggleChat() {
+    const chatWin = document.getElementById("chat-window");
+    chatWin.style.display = chatWin.style.display === "none" ? "flex" : "none";
+}
+
+async function sendChatMessage() {
+    const input = document.getElementById("chat-input");
+    const chatBody = document.getElementById("chat-body");
+    const message = input.value.trim();
+    if (!message) return;
+
+    // 1. Append User Message
+    chatBody.innerHTML += `<div style="background: #6366f1; padding: 10px 14px; border-radius: 12px; align-self: flex-end; max-width: 80%; color: white;">${message}</div>`;
+    input.value = "";
+    chatBody.scrollTop = chatBody.scrollHeight;
+
+    try {
+        // 2. Hit your Render backend endpoint
+        const response = await fetch("https://parkease-backend-m234.onrender.com/api/chat", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ message })
+        });
+        const data = await response.json();
+
+        // 3. Append Bot Response
+        chatBody.innerHTML += `<div style="background: rgba(255,255,255,0.05); padding: 10px 14px; border-radius: 12px; align-self: flex-start; max-width: 80%;">${data.reply}</div>`;
+        chatBody.scrollTop = chatBody.scrollHeight;
+    } catch (err) {
+        console.error("Chat error:", err);
+    }
+}

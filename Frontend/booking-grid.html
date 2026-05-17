@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <title>ParkEase | User Portal</title>
-     <link rel="icon" href="logo.png" type="image/icon type">
+    <link rel="icon" href="logo.png" type="image/icon type" />
     <link
       rel="stylesheet"
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
@@ -17,7 +17,7 @@
   </head>
 
   <body class="user-page">
-   <div class="bg-image-wrapper"></div> 
+    <div class="bg-image-wrapper"></div>
 
     <aside
       class="sidebar"
@@ -72,26 +72,36 @@
       <header class="user-header">
         <div class="header-left">
           <h1 id="portalTitle" class="logo-title">Booking Portal</h1>
-          <span id="portalSubtitle" class="logo-subtitle">Select your space and duration below.</span>
+          <span id="portalSubtitle" class="logo-subtitle"
+            >Select your space and duration below.</span
+          >
         </div>
-        
-        <div style="display: flex; align-items: center; gap: 20px;">
-            <div class="legend-box" style="margin: 0; padding: 8px 20px; border-radius: 12px; background: rgba(0, 0, 0, 0.4);">
-              <div class="legend-item">
-                <div class="legend-color lc-available"></div>
-                Available
-              </div>
-              <div class="legend-item">
-                <div class="legend-color lc-choice"></div>
-                Your Choice
-              </div>
-              <div class="legend-item">
-                <div class="legend-color lc-occupied"></div>
-                Occupied
-              </div>
+
+        <div style="display: flex; align-items: center; gap: 20px">
+          <div
+            class="legend-box"
+            style="
+              margin: 0;
+              padding: 8px 20px;
+              border-radius: 12px;
+              background: rgba(0, 0, 0, 0.4);
+            "
+          >
+            <div class="legend-item">
+              <div class="legend-color lc-available"></div>
+              Available
             </div>
-            
-            <div id="liveClock" class="live-clock-pill">00:00:00</div>
+            <div class="legend-item">
+              <div class="legend-color lc-choice"></div>
+              Your Choice
+            </div>
+            <div class="legend-item">
+              <div class="legend-color lc-occupied"></div>
+              Occupied
+            </div>
+          </div>
+
+          <div id="liveClock" class="live-clock-pill">00:00:00</div>
         </div>
       </header>
 
@@ -104,9 +114,12 @@
             </div>
             <div class="driveway">
               <div class="driveway-label text-emerald">Entry</div>
-                        <div class="driveway-line"></div>
-                        <div class="driveway-arrows"><i class="fas fa-chevron-down"></i><i class="fas fa-chevron-down"></i></div>
-                        <div class="driveway-label text-red">Exit</div>
+              <div class="driveway-line"></div>
+              <div class="driveway-arrows">
+                <i class="fas fa-chevron-down"></i
+                ><i class="fas fa-chevron-down"></i>
+              </div>
+              <div class="driveway-label text-red">Exit</div>
             </div>
             <div class="zone-box">
               <p class="zone-title">ZONE B</p>
@@ -125,15 +138,37 @@
             <div class="input-group">
               <label class="input-label">Duration</label>
               <div class="duration-group">
-                <button onclick="setDuration(1)" class="duration-btn active" id="d1">1h</button>
-                <button onclick="setDuration(2)" class="duration-btn" id="d2">2h</button>
-                <button onclick="setDuration(3)" class="duration-btn" id="d3">3h</button>
-                <button onclick="setDuration(4)" class="duration-btn" id="d4">4h</button>
-                <button onclick="setDuration(5)" class="duration-btn" id="d5">5h</button>
-                <button onclick="setDuration(6)" class="duration-btn" id="d6">6h</button>
-                <button onclick="setDuration(7)" class="duration-btn" id="d7">7h</button>
-                <button onclick="setDuration(8)" class="duration-btn" id="d8">8h</button>
-                <button onclick="setDuration(12)" class="duration-btn" id="d12">12h</button>
+                <button
+                  onclick="setDuration(1)"
+                  class="duration-btn active"
+                  id="d1"
+                >
+                  1h
+                </button>
+                <button onclick="setDuration(2)" class="duration-btn" id="d2">
+                  2h
+                </button>
+                <button onclick="setDuration(3)" class="duration-btn" id="d3">
+                  3h
+                </button>
+                <button onclick="setDuration(4)" class="duration-btn" id="d4">
+                  4h
+                </button>
+                <button onclick="setDuration(5)" class="duration-btn" id="d5">
+                  5h
+                </button>
+                <button onclick="setDuration(6)" class="duration-btn" id="d6">
+                  6h
+                </button>
+                <button onclick="setDuration(7)" class="duration-btn" id="d7">
+                  7h
+                </button>
+                <button onclick="setDuration(8)" class="duration-btn" id="d8">
+                  8h
+                </button>
+                <button onclick="setDuration(12)" class="duration-btn" id="d12">
+                  12h
+                </button>
               </div>
             </div>
           </div>
@@ -242,5 +277,119 @@
         </div>
       </div>
     </main>
+    <button
+      id="chat-toggle-btn"
+      onclick="toggleChat()"
+      style="
+        position: fixed;
+        bottom: 30px;
+        right: 30px;
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        background: #6366f1;
+        border: none;
+        color: white;
+        font-size: 24px;
+        cursor: pointer;
+        z-index: 2000;
+        box-shadow: 0 10px 25px rgba(99, 102, 241, 0.5);
+      "
+    >
+      <i class="fas fa-comments"></i>
+    </button>
+
+    <div
+      id="chat-window"
+      class="glass-panel"
+      style="
+        display: none;
+        position: fixed;
+        bottom: 100px;
+        right: 30px;
+        width: 350px;
+        height: 450px;
+        background: rgba(15, 23, 42, 0.95);
+        backdrop-filter: blur(16px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 20px;
+        z-index: 2000;
+        flex-direction: column;
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+      "
+    >
+      <div
+        style="
+          background: rgba(99, 102, 241, 0.2);
+          padding: 15px;
+          border-radius: 20px 20px 0 0;
+          border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+          font-weight: 900;
+          color: white;
+        "
+      >
+        🚗 ParkEase Assistant
+      </div>
+      <div
+        id="chat-body"
+        style="
+          flex: 1;
+          padding: 15px;
+          overflow-y: auto;
+          display: flex;
+          flex-direction: column;
+          gap: 10px;
+          font-size: 14px;
+        "
+      >
+        <div
+          style="
+            background: rgba(255, 255, 255, 0.05);
+            padding: 10px 14px;
+            border-radius: 12px;
+            align-self: flex-start;
+            max-width: 80%;
+          "
+        >
+          Hello! How can I help you with your parking reservation today?
+        </div>
+      </div>
+      <div
+        style="
+          padding: 15px;
+          border-top: 1px solid rgba(255, 255, 255, 0.05);
+          display: flex;
+          gap: 10px;
+        "
+      >
+        <input
+          type="text"
+          id="chat-input"
+          placeholder="Ask about spots, pricing..."
+          style="
+            flex: 1;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 10px;
+            color: white;
+            outline: none;
+          "
+        />
+        <button
+          onclick="sendChatMessage()"
+          style="
+            background: #6366f1;
+            border: none;
+            color: white;
+            padding: 0 15px;
+            border-radius: 10px;
+            cursor: pointer;
+          "
+        >
+          <i class="fas fa-paper-plane"></i>
+        </button>
+      </div>
+    </div>
   </body>
 </html>
