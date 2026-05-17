@@ -296,6 +296,35 @@ app.get('/api/admin/all-history', (req, res) => {
     });
 });
 
+//gemini-2.5-flash is the most cost-effective model for short, professional responses. Perfect for our chatbot!
+// =========================================================
+// 🤖 GEMINI AI CHATBOT SETUP
+// =========================================================
+const { GoogleGenerativeAI } = require("@google/generative-ai");
+
+// Checks for environment variable first; falls back to your local string shortcut if needed
+const aiKey = process.env.GEMINI_API_KEY ;
+const genAI = new GoogleGenerativeAI(aiKey);
+
+app.post('/api/chat', async (req, res) => {
+    const userMessage = req.body.message;
+
+    try {
+        const model = genAI.getGenerativeModel({ 
+            model: "gemini-1.5-flash", // Stable, lightning-fast model for chat
+            systemInstruction: "You are ParkEase AI, a helpful virtual assistant for an automated parking reservation platform. Answer short, professional queries about pricing (₹20/hr), operations, and spot features. Be concise."
+        });
+
+        const result = await model.generateContent(userMessage);
+        const responseText = result.response.text();
+
+        res.json({ reply: responseText });
+    } catch (error) {
+        console.error("AI Error:", error);
+        res.json({ reply: "Sorry, I am having trouble connecting to my brain right now." });
+    }
+});
+
 // Start the Server
 // This tells the app: "Use Render's assigned port, OR 3000 if running locally"
 const PORT = process.env.PORT || 3000;
