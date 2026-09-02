@@ -296,51 +296,7 @@ app.get('/api/admin/all-history', (req, res) => {
     });
 });
 
-//gemini-2.5-flash is the most cost-effective model for short, professional responses. Perfect for our chatbot!
-// =========================================================
-// 🤖 GEMINI AI CHATBOT SETUP
-// =========================================================
-const { GoogleGenerativeAI } = require("@google/generative-ai");
 
-// Checks for environment variable first; falls back to your local string shortcut if needed
-const aiKey = process.env.GEMINI_API_KEY ;
-const genAI = new GoogleGenerativeAI(aiKey);
-
-// Make sure you import your database pool at the top of your file
-// const pool = require('./db'); 
-
-app.post('/api/chat', async (req, res) => {
-    const userMessage = req.body.message;
-
-    try {
-        // 1. Fetch live available slots from your existing 'db' connection
-        // Updated to match your exact table name and status string!
-        const [rows] = await db.promise().query(
-            "SELECT COUNT(*) AS available FROM parking_slots WHERE status = 'available'"
-        );
-        const availableSlots = rows[0].available;
-
-        const model = genAI.getGenerativeModel({ 
-            model: "gemini-2.5-flash", 
-            systemInstruction: "You are ParkEase AI, a helpful virtual assistant for an automated parking reservation platform. Answer short, professional queries about pricing (₹50/hr), operations, and spot features. Be concise."
-        });
-
-        // 2. Secretly inject the live data into the user's prompt
-        const injectedPrompt = `
-          System Data: There are currently ${availableSlots} parking slots available in the garage.
-          User asked: "${userMessage}"
-        `;
-
-        // 3. Send the combined prompt to Gemini instead of just the userMessage
-        const result = await model.generateContent(injectedPrompt);
-        const responseText = result.response.text();
-
-        res.json({ reply: responseText });
-    } catch (error) {
-        console.error("AI Error:", error);
-        res.json({ reply: "Sorry, I am having trouble connecting to my brain right now." });
-    }
-});
 // Start the Server
 // This tells the app: "Use Render's assigned port, OR 3000 if running locally"
 const PORT = process.env.PORT || 3000;
