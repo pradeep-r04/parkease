@@ -313,10 +313,10 @@ app.post('/api/chat', async (req, res) => {
     const userMessage = req.body.message;
 
     try {
-        // 1. Fetch live available slots from your Aiven database
-        // (Change 'slots' and 'status' to match your actual table/column names)
-        const [rows] = await pool.promise().query(
-            "SELECT COUNT(*) AS available FROM slots WHERE status = 'empty'"
+        // 1. Fetch live available slots from your existing 'db' connection
+        // Updated to match your exact table name and status string!
+        const [rows] = await db.promise().query(
+            "SELECT COUNT(*) AS available FROM parking_slots WHERE status = 'available'"
         );
         const availableSlots = rows[0].available;
 
@@ -341,7 +341,6 @@ app.post('/api/chat', async (req, res) => {
         res.json({ reply: "Sorry, I am having trouble connecting to my brain right now." });
     }
 });
-
 // Start the Server
 // This tells the app: "Use Render's assigned port, OR 3000 if running locally"
 const PORT = process.env.PORT || 3000;
