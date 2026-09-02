@@ -49,56 +49,57 @@
     </p>
 
     <!-- STATS -->
-    <div class="stats">
 
-      <div class="stat-card pulse">
-        <h3>Total Slots</h3>
-        <p>120</p>
-        <span class="stat-info">Capacity</span>
-      </div>
+<div class="stats">
 
-      <div class="stat-card available">
-        <h3>Available</h3>
-        <p>45</p>
-        <span class="stat-info">Free slots</span>
-      </div>
+  <div class="stat-card pulse">
+    <h3>Total Slots</h3>
+    <p id="totalSlots">--</p>
+    <span class="stat-info">Capacity</span>
+  </div>
 
-      <div class="stat-card occupied">
-        <h3>Occupied</h3>
-        <p>75</p>
-        <span class="stat-info">Currently parked</span>
-      </div>
+  <div class="stat-card available">
+    <h3>Available</h3>
+    <p id="availableSlots">--</p>
+    <span class="stat-info">Free slots</span>
+  </div>
 
-      <div class="stat-card">
-        <h3>Today’s Bookings</h3>
-        <p>38</p>
-        <span class="stat-info">Last 24 hrs</span>
-      </div>
+  <div class="stat-card occupied">
+    <h3>Occupied</h3>
+    <p id="occupiedSlots">--</p>
+    <span class="stat-info">Currently parked</span>
+  </div>
 
-    </div>
+  <div class="stat-card">
+    <h3>Today's Bookings</h3>
+    <p id="todayBookings">--</p>
+    <span class="stat-info">Today</span>
+  </div>
+
+</div>
 
     <!-- EXTRA INFO ROW -->
     <div class="extra-section">
 
       <!-- PARKING STATUS -->
-      <div class="info-card slide-up">
-        <h3>Parking Status</h3>
-        <div class="progress-bar">
-          <div class="progress-fill"></div>
-        </div>
-        <p>62% Occupied</p>
-      </div>
+       <div class="info-card slide-up">
+  <h3>Parking Status</h3>
+
+  <div class="progress-bar">
+    <div class="progress-fill" id="occupancyProgress"></div>
+  </div>
+
+  <p id="occupancyText">Loading...</p>
+</div>
 
       <!-- RECENT ACTIVITY -->
       <div class="info-card slide-up delay">
-        <h3>Recent Activity</h3>
-        <ul class="activity-list">
-          <li>🚗 DL01AB1234 parked (Slot A12)</li>
-          <li>🚙 HR26DK9988 exited</li>
-          <li>🧾 New booking by Rahul</li>
-          <li>🚘 KA03MN4567 parked</li>
-        </ul>
-      </div>
+  <h3>Recent Activity</h3>
+
+  <ul class="activity-list" id="recentActivity">
+    <li>Loading recent activity...</li>
+  </ul>
+</div>
 
       <!-- QUICK INSIGHTS -->
       <div class="info-card slide-up delay2">
@@ -129,7 +130,7 @@
       <ul>
         <li><a href="dashboard.html">Dashboard</li></a>
         <li>Parking Slots</li>
-        <li><a href="bookings.html">Bookings</a></li>
+        <li><a href="booking-grid.html">Bookings</a></li>
         <li><a href="reports.html">Reports</a></li>
       </ul>
     </div>
