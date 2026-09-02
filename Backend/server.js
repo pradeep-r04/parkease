@@ -306,16 +306,33 @@ const { GoogleGenerativeAI } = require("@google/generative-ai");
 const aiKey = process.env.GEMINI_API_KEY ;
 const genAI = new GoogleGenerativeAI(aiKey);
 
+// Make sure you import your database pool at the top of your file
+// const pool = require('./db'); 
+
 app.post('/api/chat', async (req, res) => {
     const userMessage = req.body.message;
 
     try {
-        const model = genAI.getGenerativeModel({ 
-          model: "gemini-2.5-flash", // Upgraded to a live, supported stable version
-          systemInstruction: "You are ParkEase AI, a helpful virtual assistant for an automated parking reservation platform. Answer short, professional queries about pricing (₹20/hr), operations, and spot features. Be concise."
-  });
+        // 1. Fetch live available slots from your Aiven database
+        // (Change 'slots' and 'status' to match your actual table/column names)
+        const [rows] = await pool.promise().query(
+            "SELECT COUNT(*) AS available FROM slots WHERE status = 'empty'"
+        );
+        const availableSlots = rows[0].available;
 
-        const result = await model.generateContent(userMessage);
+        const model = genAI.getGenerativeModel({ 
+            model: "gemini-2.5-flash", 
+            systemInstruction: "You are ParkEase AI, a helpful virtual assistant for an automated parking reservation platform. Answer short, professional queries about pricing (₹50/hr), operations, and spot features. Be concise."
+        });
+
+        // 2. Secretly inject the live data into the user's prompt
+        const injectedPrompt = `
+          System Data: There are currently ${availableSlots} parking slots available in the garage.
+          User asked: "${userMessage}"
+        `;
+
+        // 3. Send the combined prompt to Gemini instead of just the userMessage
+        const result = await model.generateContent(injectedPrompt);
         const responseText = result.response.text();
 
         res.json({ reply: responseText });
