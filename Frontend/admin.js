@@ -404,55 +404,72 @@ initCharts();
 render();
 
 // --- PDF REPORT GENERATION ---
-// --- PDF REPORT GENERATION ---
 async function generatePDF() {
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF();
   const now = new Date().toLocaleString();
 
-  // 1. Calculate Live Executive Summary from the grid
-  const booked = slots.filter((s) => s.status === "booked");
-  const available = slots.filter((s) => s.status === "available");
-  const disabled = slots.filter(
-    (s) => s.status === "not-available" || s.status === "disabled-spot",
-  );
-  const revenue = booked.length * 50;
-
-  // 2. Draw the Header and Summary
-  doc.setFontSize(22);
-  doc.setTextColor(15, 23, 42);
-  doc.text("ParkEase Enterprise Report", 14, 20);
-
-  doc.setFontSize(10);
-  doc.setTextColor(100);
-  doc.text(`Generated on: ${now}`, 14, 28);
-  doc.text("Status: Confidential - System Administrator Access Only", 14, 33);
-
-  doc.setFontSize(12);
-  doc.setTextColor(0);
-  doc.setFont(undefined, "bold");
-  doc.text("Executive Summary", 14, 45);
-
-  doc.setFontSize(11);
-  doc.setFont(undefined, "normal");
-  doc.text(`Total Capacity: ${slots.length}`, 14, 53);
-  doc.text(`Active Bookings: ${booked.length}`, 14, 59);
-  doc.text(`Available Spots: ${available.length}`, 80, 53);
-  doc.text(`Disabled/Maintenance Spots: ${disabled.length}`, 80, 59);
-
-  doc.setFont(undefined, "bold");
-  doc.setTextColor(16, 185, 129);
-  doc.text(`Total Estimated Revenue: Rs. ${revenue}`, 14, 68);
-  doc.setTextColor(0);
-
-  // 3. FETCH FULL HISTORY FOR THE TABLE
   try {
+    // 1. FETCH FULL HISTORY FIRST
     const historyRes = await fetch(
       "https://parkease-backend-m234.onrender.com/api/admin/all-history",
     );
     const historyData = await historyRes.json();
 
-    // Map the database history into PDF table rows
+    // 2. Calculate the real revenue (Completed + Active)
+    let calculatedRevenue = 0;
+    const hourlyRate = 50; 
+
+    historyData.forEach(booking => {
+      // Ensure the status matches your database formatting exactly
+      if (booking.status === 'Completed' || booking.status === 'Active' || booking.status === 'COMPLETED') {
+        const checkInTime = new Date(`1970-01-01T${booking.check_in}:00`);
+        const checkOutTime = new Date(`1970-01-01T${booking.check_out}:00`);
+        
+        const diffInHours = (checkOutTime - checkInTime) / (1000 * 60 * 60);
+        
+        if (diffInHours > 0) {
+          calculatedRevenue += (diffInHours * hourlyRate);
+        }
+      }
+    });
+
+    // 3. Calculate Live Executive Summary from the grid
+    const booked = slots.filter((s) => s.status === "booked");
+    const available = slots.filter((s) => s.status === "available");
+    const disabled = slots.filter(
+      (s) => s.status === "not-available" || s.status === "disabled-spot",
+    );
+
+    // 4. Draw the Header and Summary
+    doc.setFontSize(22);
+    doc.setTextColor(15, 23, 42);
+    doc.text("ParkEase Enterprise Report", 14, 20);
+
+    doc.setFontSize(10);
+    doc.setTextColor(100);
+    doc.text(`Generated on: ${now}`, 14, 28);
+    doc.text("Status: Confidential - System Administrator Access Only", 14, 33);
+
+    doc.setFontSize(12);
+    doc.setTextColor(0);
+    doc.setFont(undefined, "bold");
+    doc.text("Executive Summary", 14, 45);
+
+    doc.setFontSize(11);
+    doc.setFont(undefined, "normal");
+    doc.text(`Total Capacity: ${slots.length}`, 14, 53);
+    doc.text(`Active Bookings: ${booked.length}`, 14, 59);
+    doc.text(`Available Spots: ${available.length}`, 80, 53);
+    doc.text(`Disabled/Maintenance Spots: ${disabled.length}`, 80, 59);
+
+    doc.setFont(undefined, "bold");
+    doc.setTextColor(16, 185, 129);
+    // Updated to use the new calculated variable
+    doc.text(`Total Historical + Active Revenue: Rs. ${calculatedRevenue}`, 14, 68);
+    doc.setTextColor(0);
+
+    // 5. Map the database history into PDF table rows
     const reportData = historyData.map((h) => {
       let d = new Date(h.booking_date);
       let dateStr = d.toLocaleDateString();
@@ -460,14 +477,14 @@ async function generatePDF() {
       return [
         h.slot_id,
         h.user_email || "Walk-in",
-        dateStr, // Added Date column for better reporting
+        dateStr,
         h.check_in || "-",
         h.check_out || "-",
-        h.status.toUpperCase(), // ACTIVE, CANCELLED, or COMPLETED
+        h.status.toUpperCase(), 
       ];
     });
 
-    // 4. Draw the Table
+    // 6. Draw the Table
     doc.autoTable({
       startY: 75,
       head: [
@@ -480,7 +497,7 @@ async function generatePDF() {
       styles: { fontSize: 9 },
     });
 
-    // 5. Save the PDF
+    // 7. Save the PDF
     doc.save(`ParkEase_Enterprise_Report_${new Date().getTime()}.pdf`);
   } catch (err) {
     console.error("PDF Generation failed:", err);
