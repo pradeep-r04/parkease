@@ -407,7 +407,8 @@ render();
 async function generatePDF() {
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF();
-  const now = new Date().toLocaleString();
+  const now = new Date();
+  const dateString = now.toLocaleString();
 
   try {
     // 1. FETCH FULL HISTORY FIRST
@@ -416,39 +417,70 @@ async function generatePDF() {
     );
     const historyData = await historyRes.json();
 
-    // 2. Calculate the real revenue (Completed + Active)
-    let calculatedRevenue = 0;
+    // 2. Set up our Revenue "Buckets"
+    let totalRevenue = 0;
+    let monthlyRevenue = 0;
+    let todayRevenue = 0;
+    let activeRevenue = 0;
     const hourlyRate = 50; 
 
+    const currentMonth = now.getMonth();
+    const currentYear = now.getFullYear();
+    const currentDate = now.getDate();
+
+    // 3. Calculate all the different revenue types
     historyData.forEach(booking => {
-      // Ensure the status matches your database formatting exactly
       if (booking.status === 'Completed' || booking.status === 'Active' || booking.status === 'COMPLETED') {
         const checkInTime = new Date(`1970-01-01T${booking.check_in}:00`);
         const checkOutTime = new Date(`1970-01-01T${booking.check_out}:00`);
         
-        const diffInHours = (checkOutTime - checkInTime) / (1000 * 60 * 60);
+        let diffInHours = (checkOutTime - checkInTime) / (1000 * 60 * 60);
+        
+        // Fix for overnight bookings (e.g., 11:00 PM to 1:00 AM)
+        if (diffInHours < 0) {
+            diffInHours += 24;
+        }
         
         if (diffInHours > 0) {
-          calculatedRevenue += (diffInHours * hourlyRate);
+          const bookingCost = diffInHours * hourlyRate;
+          totalRevenue += bookingCost;
+
+          // Convert booking date string to a real Date object for comparison
+          const bDate = new Date(booking.booking_date);
+
+          // Add to Today's Revenue if dates match exactly
+          if (bDate.getDate() === currentDate && bDate.getMonth() === currentMonth && bDate.getFullYear() === currentYear) {
+              todayRevenue += bookingCost;
+          }
+
+          // Add to Monthly Revenue if month and year match
+          if (bDate.getMonth() === currentMonth && bDate.getFullYear() === currentYear) {
+              monthlyRevenue += bookingCost;
+          }
+
+          // Add to Active/Current Revenue if the car is currently parked
+          if (booking.status === 'Active') {
+              activeRevenue += bookingCost;
+          }
         }
       }
     });
 
-    // 3. Calculate Live Executive Summary from the grid
+    // 4. Calculate Live Executive Summary from the grid
     const booked = slots.filter((s) => s.status === "booked");
     const available = slots.filter((s) => s.status === "available");
     const disabled = slots.filter(
       (s) => s.status === "not-available" || s.status === "disabled-spot",
     );
 
-    // 4. Draw the Header and Summary
+    // 5. Draw the Header and Summary
     doc.setFontSize(22);
     doc.setTextColor(15, 23, 42);
     doc.text("ParkEase Enterprise Report", 14, 20);
 
     doc.setFontSize(10);
     doc.setTextColor(100);
-    doc.text(`Generated on: ${now}`, 14, 28);
+    doc.text(`Generated on: ${dateString}`, 14, 28);
     doc.text("Status: Confidential - System Administrator Access Only", 14, 33);
 
     doc.setFontSize(12);
@@ -456,20 +488,24 @@ async function generatePDF() {
     doc.setFont(undefined, "bold");
     doc.text("Executive Summary", 14, 45);
 
+    // Grid Status
     doc.setFontSize(11);
     doc.setFont(undefined, "normal");
     doc.text(`Total Capacity: ${slots.length}`, 14, 53);
-    doc.text(`Active Bookings: ${booked.length}`, 14, 59);
-    doc.text(`Available Spots: ${available.length}`, 80, 53);
-    doc.text(`Disabled/Maintenance Spots: ${disabled.length}`, 80, 59);
+    doc.text(`Active Bookings: ${booked.length}`, 90, 53);
+    doc.text(`Available Spots: ${available.length}`, 14, 59);
+    doc.text(`Disabled/Maintenance Spots: ${disabled.length}`, 90, 59);
 
+    // Detailed Revenue Breakdown
     doc.setFont(undefined, "bold");
-    doc.setTextColor(16, 185, 129);
-    // Updated to use the new calculated variable
-    doc.text(`Total Historical + Active Revenue: Rs. ${calculatedRevenue}`, 14, 68);
+    doc.setTextColor(16, 185, 129); // Professional Green Color
+    doc.text(`Today's Revenue: Rs. ${todayRevenue}`, 14, 70);
+    doc.text(`This Month's Revenue: Rs. ${monthlyRevenue}`, 90, 70);
+    doc.text(`Current Active Revenue: Rs. ${activeRevenue}`, 14, 76);
+    doc.text(`Total Lifetime Revenue: Rs. ${totalRevenue}`, 90, 76);
     doc.setTextColor(0);
 
-    // 5. Map the database history into PDF table rows
+    // 6. Map the database history into PDF table rows
     const reportData = historyData.map((h) => {
       let d = new Date(h.booking_date);
       let dateStr = d.toLocaleDateString();
@@ -484,9 +520,9 @@ async function generatePDF() {
       ];
     });
 
-    // 6. Draw the Table
+    // 7. Draw the Table (Pushed down to Y: 85 to make room for revenue)
     doc.autoTable({
-      startY: 75,
+      startY: 85,
       head: [
         ["Slot ID", "User Email", "Date", "Check-In", "Check-Out", "Status"],
       ],
@@ -497,8 +533,8 @@ async function generatePDF() {
       styles: { fontSize: 9 },
     });
 
-    // 7. Save the PDF
-    doc.save(`ParkEase_Enterprise_Report_${new Date().getTime()}.pdf`);
+    // 8. Save the PDF
+    doc.save(`ParkEase_Enterprise_Report_${now.getTime()}.pdf`);
   } catch (err) {
     console.error("PDF Generation failed:", err);
     alert("Failed to fetch history data for the report.");
