@@ -9,6 +9,10 @@
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
     />
     <link rel="stylesheet" href="grid-style.css" />
+    
+    <!-- Razorpay Checkout Script Added -->
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+    
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
@@ -187,10 +191,13 @@
           <div class="table-wrapper custom-scroll">
             <table class="admin-table">
               <thead>
+                <!-- Active Table Payment Headers Added -->
                 <tr>
                   <th>Slot ID</th>
                   <th>Check-In</th>
                   <th>Check-Out</th>
+                  <th>Amount</th>
+                  <th>Payment</th>
                   <th style="text-align: right">Action</th>
                 </tr>
               </thead>
@@ -211,11 +218,14 @@
           <div class="table-wrapper custom-scroll" style="margin-top: 15px">
             <table class="admin-table">
               <thead>
+                <!-- Past Table Payment Headers Added -->
                 <tr>
                   <th>Slot ID</th>
                   <th>Date</th>
                   <th>Check-In</th>
                   <th>Check-Out</th>
+                  <th>Amount</th>
+                  <th>Payment</th>
                   <th style="text-align: right">Status</th>
                 </tr>
               </thead>

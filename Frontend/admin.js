@@ -206,19 +206,24 @@ async function render() {
           // Determine what to show in the Action column
           let statusHtml = "";
           if (h.status === "Active") {
-            // If active, show the Release button
             statusHtml = `<button onclick="release('${h.slot_id}')" class="btn-release">Release</button>`;
           } else {
-            // If cancelled/completed, show the colored text!
             let color = h.status === "Completed" ? "#34d399" : "#f87171";
             statusHtml = `<span style="color: ${color}; font-weight: 900; font-size: 10px; text-transform: uppercase;">${h.status}</span>`;
           }
+
+          // Payment Status Badge Injection
+          let payBadgeColor = h.payment_status === 'PAID' ? '#10b981' : '#f59e0b';
+          let payBadge = `<span style="background: ${payBadgeColor}; color: #fff; padding: 2px 6px; border-radius: 4px; font-size: 9px; font-weight: bold; margin-top: 4px; display: inline-block;">
+              ${h.payment_status || 'PENDING'} - ₹${h.amount || '0'}
+          </span>`;
 
           // Draw the row
           row.innerHTML = `
             <td>
                 <p class="td-slot-id">${h.slot_id}</p>
                 <p class="td-driver"><i class="fas fa-envelope"></i> ${h.user_email || "Walk-in"}</p>
+                ${payBadge}
             </td>
             <td>
                 <span style="color: #94a3b8; font-size: 10px; display: block; margin-bottom: 2px;">${formattedDate}</span>
@@ -387,7 +392,6 @@ async function release(id) {
 setInterval(() => {
   const clock = document.getElementById("liveClock");
   if (clock) {
-    // en-US and hour12: true gives you the standard AM/PM format!
     clock.innerText = new Date().toLocaleTimeString("en-US", { 
         timeZone: "Asia/Kolkata",
         hour12: true 
@@ -395,7 +399,7 @@ setInterval(() => {
   }
 }, 1000);
 
-// Silently refresh the grid every 3 seconds to get bookings from users!
+// Silently refresh the grid every 3 seconds
 setInterval(() => {
   render();
 }, 3000);
@@ -403,7 +407,7 @@ setInterval(() => {
 initCharts();
 render();
 
-// --- PDF REPORT GENERATION ---
+// --- PDF REPORT GENERATION (Updated with Exact Amount Tracking) ---
 async function generatePDF() {
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF();
@@ -422,46 +426,32 @@ async function generatePDF() {
     let monthlyRevenue = 0;
     let todayRevenue = 0;
     let activeRevenue = 0;
-    const hourlyRate = 50; 
 
     const currentMonth = now.getMonth();
     const currentYear = now.getFullYear();
     const currentDate = now.getDate();
 
-    // 3. Calculate all the different revenue types
+    // 3. Calculate all the different revenue types directly from the exact Database 'Amount'
     historyData.forEach(booking => {
-      if (booking.status === 'Completed' || booking.status === 'Active' || booking.status === 'COMPLETED') {
-        const checkInTime = new Date(`1970-01-01T${booking.check_in}:00`);
-        const checkOutTime = new Date(`1970-01-01T${booking.check_out}:00`);
-        
-        let diffInHours = (checkOutTime - checkInTime) / (1000 * 60 * 60);
-        
-        // Fix for overnight bookings (e.g., 11:00 PM to 1:00 AM)
-        if (diffInHours < 0) {
-            diffInHours += 24;
+      if (booking.payment_status === 'PAID') {
+        const bookingCost = parseFloat(booking.amount) || 0;
+        totalRevenue += bookingCost;
+
+        const bDate = new Date(booking.booking_date);
+
+        // Add to Today's Revenue if dates match exactly
+        if (bDate.getDate() === currentDate && bDate.getMonth() === currentMonth && bDate.getFullYear() === currentYear) {
+            todayRevenue += bookingCost;
         }
-        
-        if (diffInHours > 0) {
-          const bookingCost = diffInHours * hourlyRate;
-          totalRevenue += bookingCost;
 
-          // Convert booking date string to a real Date object for comparison
-          const bDate = new Date(booking.booking_date);
+        // Add to Monthly Revenue if month and year match
+        if (bDate.getMonth() === currentMonth && bDate.getFullYear() === currentYear) {
+            monthlyRevenue += bookingCost;
+        }
 
-          // Add to Today's Revenue if dates match exactly
-          if (bDate.getDate() === currentDate && bDate.getMonth() === currentMonth && bDate.getFullYear() === currentYear) {
-              todayRevenue += bookingCost;
-          }
-
-          // Add to Monthly Revenue if month and year match
-          if (bDate.getMonth() === currentMonth && bDate.getFullYear() === currentYear) {
-              monthlyRevenue += bookingCost;
-          }
-
-          // Add to Active/Current Revenue if the car is currently parked
-          if (booking.status === 'Active') {
-              activeRevenue += bookingCost;
-          }
+        // Add to Active/Current Revenue if the car is currently parked
+        if (booking.status === 'Active') {
+            activeRevenue += bookingCost;
         }
       }
     });
@@ -505,7 +495,7 @@ async function generatePDF() {
     doc.text(`Total Lifetime Revenue: Rs. ${totalRevenue}`, 90, 76);
     doc.setTextColor(0);
 
-    // 6. Map the database history into PDF table rows
+    // 6. Map the database history into PDF table rows (Now includes Amount and Payment columns)
     const reportData = historyData.map((h) => {
       let d = new Date(h.booking_date);
       let dateStr = d.toLocaleDateString();
@@ -516,15 +506,17 @@ async function generatePDF() {
         dateStr,
         h.check_in || "-",
         h.check_out || "-",
+        `Rs. ${h.amount || '0'}`,
+        h.payment_status || 'PENDING',
         h.status.toUpperCase(), 
       ];
     });
 
-    // 7. Draw the Table (Pushed down to Y: 85 to make room for revenue)
+    // 7. Draw the Table (Expanded to include financial columns)
     doc.autoTable({
       startY: 85,
       head: [
-        ["Slot ID", "User Email", "Date", "Check-In", "Check-Out", "Status"],
+        ["Slot ID", "User", "Date", "In", "Out", "Amount", "Payment", "Status"],
       ],
       body: reportData,
       theme: "grid",

@@ -99,13 +99,12 @@ function updateTotal() {
 }
 
 // ==========================================
-// BOOKING & HISTORY LOGIC
+// BOOKING & HISTORY LOGIC (Updated with Razorpay)
 // ==========================================
 async function confirmBooking() {
   const isLoggedIn = localStorage.getItem("loggedInRole") === "user";
   if (!currentSelection) return alert("Select a spot first!");
 
-  // THE SMART HANDOFF
   if (!isLoggedIn) {
     sessionStorage.setItem("pendingSlot", currentSelection);
     window.location.href = "login.html";
@@ -113,25 +112,18 @@ async function confirmBooking() {
   }
 
   const userEmail = localStorage.getItem("userEmail");
-  
-  // 🌟 NEW LOGIC: Grab the name directly from memory!
   let driverName = localStorage.getItem("userName");
   
-  // Fallback: If no name is saved, use their email prefix (e.g., "pratik" from "pratik@email.com")
   if (!driverName) {
       driverName = userEmail ? userEmail.split('@')[0] : "User";
   }
 
   const now = new Date();
   const checkout = new Date(now.getTime() + selectedHours * 60 * 60 * 1000);
-  const checkInTime = now.toLocaleTimeString("en-GB", {
-    hour: "2-digit",
-    minute: "2-digit",
-  });
-  const checkOutTime = checkout.toLocaleTimeString("en-GB", {
-    hour: "2-digit",
-    minute: "2-digit",
-  });
+  const checkInTime = now.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" });
+  const checkOutTime = checkout.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" });
+  
+  const calculatedPrice = selectedHours * 50;
 
   const bookingData = {
     id: currentSelection,
@@ -139,31 +131,52 @@ async function confirmBooking() {
     userEmail: userEmail,
     checkIn: checkInTime,
     checkOut: checkOutTime,
+    amount: calculatedPrice
   };
 
-  try {
-    const response = await fetch(
-      "https://parkease-backend-m234.onrender.com/api/book",
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(bookingData),
-      },
-    );
+  // RAZORPAY INTEGRATION HOOK
+  var options = {
+    key: "rzp_test_Ttlf1WLNbYHACW", // Update with your razorpay key
+    amount: calculatedPrice * 100, // Razorpay calculates in paise
+    currency: "INR",
+    name: "ParkEase",
+    description: `Booking for ${currentSelection}`,
+    handler: async function (response) {
+      // Execute the backend save ONLY after successful payment
+      bookingData.payment_id = response.razorpay_payment_id;
+      bookingData.payment_status = "PAID";
 
-    if (response.ok) {
-      currentSelection = null;
-      alert("Booking Confirmed & Saved to Cloud!");
-      render();
-      updateTotal();
-      switchUserView("history"); // Take them directly to their bookings!
-    } else {
-      alert("Failed to book spot. It may have just been taken!");
-      render();
+      try {
+        const res = await fetch("https://parkease-backend-m234.onrender.com/api/book", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(bookingData),
+        });
+
+        if (res.ok) {
+          currentSelection = null;
+          alert("Payment Successful & Booking Confirmed!");
+          render();
+          updateTotal();
+          switchUserView("history");
+        } else {
+          alert("Database save failed, please contact support.");
+        }
+      } catch (err) {
+        console.error("Booking error:", err);
+      }
+    },
+    prefill: {
+      name: driverName,
+      email: userEmail
+    },
+    theme: {
+      color: "#4f46e5"
     }
-  } catch (err) {
-    console.error("Booking error:", err);
-  }
+  };
+  
+  var rzp1 = new Razorpay(options);
+  rzp1.open();
 }
 
 async function cancelBooking(id) {
@@ -185,14 +198,12 @@ async function cancelBooking(id) {
 
 async function updateHistory() {
   const isLoggedIn = localStorage.getItem("loggedInRole") === "user";
-  if (!isLoggedIn) return; // Guests don't have history
+  if (!isLoggedIn) return; 
 
   const userEmail = localStorage.getItem("userEmail");
 
   try {
-    const response = await fetch(
-      `https://parkease-backend-m234.onrender.com/api/history/${userEmail}`,
-    );
+    const response = await fetch(`https://parkease-backend-m234.onrender.com/api/history/${userEmail}`);
     const dbHistory = await response.json();
 
     const activeTable = document.getElementById("historyTable");
@@ -204,18 +215,21 @@ async function updateHistory() {
     pastTable.innerHTML = "";
 
     if (dbHistory.length === 0) {
-      activeTable.innerHTML =
-        '<tr><td colspan="4" class="table-empty">No bookings found</td></tr>';
+      activeTable.innerHTML = '<tr><td colspan="6" class="table-empty">No bookings found</td></tr>';
       return;
     }
 
     dbHistory.forEach((h) => {
+      let payColor = h.payment_status === 'PAID' ? '#10b981' : '#f59e0b';
+      
       if (h.status === "Active") {
         activeTable.innerHTML += `
           <tr>
             <td><strong>${h.slot_id}</strong></td>
             <td><span class="td-time-in">${h.check_in}</span></td>
             <td><span class="td-time-out">${h.check_out}</span></td>
+            <td style="font-weight: bold;">₹${h.amount || '0'}</td>
+            <td style="color: ${payColor}; font-weight: bold; font-size: 11px;">${h.payment_status || 'PENDING'}</td>
             <td style="text-align: right;">
               <button onclick="cancelBooking('${h.slot_id}')" class="btn-trash">Cancel</button>
             </td>
@@ -231,6 +245,8 @@ async function updateHistory() {
             <td style="color: #94a3b8; font-size: 11px;">${formattedDate}</td>
             <td><span class="td-time-in">${h.check_in}</span></td>
             <td><span class="td-time-out">${h.check_out}</span></td>
+            <td style="font-weight: bold;">₹${h.amount || '0'}</td>
+            <td style="color: ${payColor}; font-weight: bold; font-size: 11px;">${h.payment_status || 'PENDING'}</td>
             <td style="text-align: right; color: ${statusColor}; font-weight: 700; font-size: 11px;">
               ${h.status}
             </td>
