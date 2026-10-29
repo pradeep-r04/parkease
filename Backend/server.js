@@ -296,6 +296,21 @@ app.get('/api/admin/all-history', (req, res) => {
     });
 });
 
+// API 13: Database Upgrade (Adds payment tracking columns to history)
+app.get("/api/upgrade-db", (req, res) => {
+  const query = `
+    ALTER TABLE booking_history
+    ADD COLUMN amount DECIMAL(10, 2) DEFAULT 0.00,
+    ADD COLUMN order_id VARCHAR(100) DEFAULT NULL,
+    ADD COLUMN payment_id VARCHAR(100) DEFAULT NULL,
+    ADD COLUMN payment_status ENUM('PENDING', 'PAID', 'FAILED', 'REFUNDED') DEFAULT 'PENDING';
+  `;
+
+  db.query(query, (err, result) => {
+    if (err) return res.send("Error: " + err.message);
+    res.send("Success! The payment columns have been added to booking_history.");
+  });
+});
 
 // Start the Server
 // This tells the app: "Use Render's assigned port, OR 3000 if running locally"
