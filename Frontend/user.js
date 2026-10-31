@@ -223,9 +223,26 @@ async function updateHistory() {
       let payColor = h.payment_status === 'PAID' ? '#10b981' : '#f59e0b';
       
       if (h.status === "Active") {
+        // 1. Calculate if the user is late
+        const now = new Date();
+        const [outHour, outMin] = h.check_out.split(':').map(Number);
+        const expectedOut = new Date();
+        expectedOut.setHours(outHour, outMin, 0, 0);
+
+        let penaltyWarning = "";
+        if (now > expectedOut) {
+          const diffMins = Math.floor((now - expectedOut) / 60000);
+          const penaltyHours = Math.ceil(diffMins / 60);
+          const penaltyAmount = penaltyHours * 50;
+          penaltyWarning = `<div style="color: #ef4444; font-size: 11px; margin-top: 5px; font-weight: bold;"><i class="fas fa-exclamation-triangle"></i> Late Penalty: ₹${penaltyAmount} due at gate</div>`;
+        }
+
         activeTable.innerHTML += `
           <tr>
-            <td><strong>${h.slot_id}</strong></td>
+            <td>
+              <strong>${h.slot_id}</strong>
+              ${penaltyWarning}
+            </td>
             <td><span class="td-time-in">${h.check_in}</span></td>
             <td><span class="td-time-out">${h.check_out}</span></td>
             <td style="font-weight: bold;">₹${h.amount || '0'}</td>

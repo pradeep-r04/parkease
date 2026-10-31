@@ -206,7 +206,8 @@ async function render() {
           // Determine what to show in the Action column
           let statusHtml = "";
           if (h.status === "Active") {
-            statusHtml = `<button onclick="release('${h.slot_id}')" class="btn-release">Release</button>`;
+            // WE NOW PASS THE CHECKOUT TIME TO THE RELEASE FUNCTION FOR PENALTY CALCULATION
+            statusHtml = `<button onclick="release('${h.slot_id}', '${h.check_out}')" class="btn-release">Release</button>`;
           } else {
             let color = h.status === "Completed" ? "#34d399" : "#f87171";
             statusHtml = `<span style="color: ${color}; font-weight: 900; font-size: 10px; text-transform: uppercase;">${h.status}</span>`;
@@ -375,17 +376,45 @@ async function remove() {
   render();
 }
 
-// Releases a booked slot back to available in MySQL
-async function release(id) {
-  if (!confirm(`Release slot ${id}?`)) return;
+// Upgraded Release function with Overtime Penalty
+async function release(id, checkOutTime) {
+  // 1. Calculate Time Difference
+  const now = new Date();
+  
+  // Convert "14:30" (checkOutTime) into today's actual time
+  const [outHour, outMin] = checkOutTime.split(':').map(Number);
+  const expectedOut = new Date();
+  expectedOut.setHours(outHour, outMin, 0, 0);
 
-  await fetch("https://parkease-backend-m234.onrender.com/api/release", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ id: id }),
-  });
+  let confirmMessage = `Are you sure you want to release slot ${id}?`;
 
-  render();
+  // 2. Check if they are late
+  if (now > expectedOut) {
+    const diffMs = now - expectedOut;
+    const diffMins = Math.floor(diffMs / 60000); // Convert to minutes
+    
+    // Calculate penalty: e.g., Rs 50 for every started hour they are late
+    const penaltyHours = Math.ceil(diffMins / 60);
+    const penaltyAmount = penaltyHours * 50; 
+
+    // Update the prompt for the admin
+    confirmMessage = `🚨 OVERTIME WARNING! 🚨\n\nThis vehicle is ${diffMins} minutes late.\nPenalty Due: ₹${penaltyAmount}\n\nPlease collect ₹${penaltyAmount} (Cash/UPI) at the gate before clicking OK to release.`;
+  }
+
+  // 3. Confirm with Admin
+  if (!confirm(confirmMessage)) return; // Stop if admin clicks Cancel
+
+  // 4. Send the release command to your backend
+  try {
+    await fetch("https://parkease-backend-m234.onrender.com/api/release", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id: id }),
+    });
+    render();
+  } catch(err) {
+    console.error("Release failed:", err);
+  }
 }
 
 // --- CLOCK & LIVE POLLING ---
