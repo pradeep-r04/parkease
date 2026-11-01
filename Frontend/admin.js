@@ -202,9 +202,18 @@ async function render() {
             statusHtml = `<span style="color: ${color}; font-weight: 900; font-size: 10px; text-transform: uppercase;">${h.status}</span>`;
           }
 
-          let payBadgeColor = h.payment_status === 'PAID' ? '#10b981' : '#f59e0b';
+          let payBadgeColor = '#f59e0b'; // Default orange for PENDING
+          let displayStatus = h.payment_status || 'PENDING';
+
+          if (h.payment_status === 'PAID') {
+             payBadgeColor = '#10b981'; // Green for normal upfront payment
+          } else if (h.payment_status === 'PENALTY PAID') {
+             payBadgeColor = '#ef4444'; // Red alert color for penalties
+             displayStatus = '🚨 PENALTY PAID';
+          }
+
           let payBadge = `<span style="background: ${payBadgeColor}; color: #fff; padding: 2px 6px; border-radius: 4px; font-size: 9px; font-weight: bold; margin-top: 4px; display: inline-block;">
-              ${h.payment_status || 'PENDING'} - ₹${h.amount || '0'}
+              ${displayStatus} - ₹${h.amount || '0'}
           </span>`;
 
           row.innerHTML = `
@@ -378,7 +387,10 @@ async function release(id, checkInTime, checkOutTime) {
   if (now > expectedOut) {
     const diffMs = now - expectedOut;
     const diffMins = Math.floor(diffMs / 60000); 
-    const penaltyAmount = Math.round(diffMins * (50 / 60));
+    
+    // NEW FLAT-RATE HOURLY LOGIC
+    const penaltyHours = Math.ceil(diffMins / 60);
+    const penaltyAmount = penaltyHours * 50;
 
     if (penaltyAmount > 0) {
       confirmMessage = `🚨 OVERTIME WARNING! 🚨\n\nThis vehicle is ${diffMins} minutes late.\nPenalty Due: ₹${penaltyAmount}\n\nPlease verify payment before clicking OK to release.`;

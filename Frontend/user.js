@@ -235,7 +235,9 @@ async function updateHistory() {
         let penaltyWarning = "";
         if (now > expectedOut) {
           const diffMins = Math.floor((now - expectedOut) / 60000);
-          const penaltyAmount = Math.round(diffMins * (50 / 60)); 
+          // NEW FLAT-RATE HOURLY LOGIC
+          const penaltyHours = Math.ceil(diffMins / 60); 
+          const penaltyAmount = penaltyHours * 50;
           
           if (penaltyAmount > 0) {
             penaltyWarning = `
@@ -303,7 +305,7 @@ function payPenalty(slotId, amount) {
             id: slotId, 
             payment_id: response.razorpay_payment_id,
             penalty_amount: amount,
-            status: "PAID"
+            status: "PENALTY PAID"
           }),
         });
 
