@@ -5,16 +5,14 @@ const cors = require("cors");
 
 const app = express();
 
-// Cloud-optimized CORS
 app.use(cors({
-    origin: "*", // This allows your Render Frontend to talk to this Backend
+    origin: "*", 
     methods: ["GET", "POST", "PUT", "DELETE"],
     allowedHeaders: ["Content-Type", "Authorization"]
 }));
 
 app.use(express.json());
 
-// 1. Database Connection
 const db = mysql.createConnection({
     host: process.env.DB_HOST,
     user: process.env.DB_USER,
@@ -34,8 +32,6 @@ db.connect((err) => {
   console.log("✅ Connected to ParkEase MySQL Database!");
 });
 
-// API ENDPOINTS (The "Drive-Thru Windows")
-// API 1: Get all live parking slots
 app.get("/api/slots", (req, res) => {
   db.query("SELECT * FROM parking_slots", (err, results) => {
     if (err) return res.status(500).json({ error: err.message });
@@ -43,25 +39,22 @@ app.get("/api/slots", (req, res) => {
   });
 });
 
-// API 2: Book a specific slot
 app.post("/api/book", (req, res) => {
-  const { id, userName, userEmail, checkIn, checkOut } = req.body;
+  const { id, userName, userEmail, checkIn, checkOut, payment_id, payment_status, amount } = req.body;
   const now = new Date();
   const bookingDate = new Date(now.getTime() - now.getTimezoneOffset() * 60000)
     .toISOString()
     .split("T")[0];
 
-  // 1. Update the slot status
   const updateSlotQuery = `
         UPDATE parking_slots 
         SET status = 'booked', userName = ?, userEmail = ?, checkIn = ?, checkOut = ?
         WHERE id = ?
     `;
 
-  // 2. Insert into history table
   const insertHistoryQuery = `
-        INSERT INTO booking_history (slot_id, user_email, booking_date, check_in, check_out, status)
-        VALUES (?, ?, ?, ?, ?, 'Active')
+        INSERT INTO booking_history (slot_id, user_email, booking_date, check_in, check_out, amount, payment_id, payment_status, status)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'Active')
     `;
 
   db.beginTransaction((err) => {
@@ -78,7 +71,7 @@ app.post("/api/book", (req, res) => {
 
         db.query(
           insertHistoryQuery,
-          [id, userEmail, bookingDate, checkIn, checkOut],
+          [id, userEmail, bookingDate, checkIn, checkOut, amount, payment_id, payment_status],
           (err) => {
             if (err)
               return db.rollback(() =>
@@ -99,22 +92,18 @@ app.post("/api/book", (req, res) => {
   });
 });
 
-// API 3: ONE-TIME SETUP - Generates the 70 empty slots in the database!
 app.get("/api/setup-grid", (req, res) => {
   let values = [];
 
-  // Generate Zone A (P) and Zone B (S)
   ["P", "S"].forEach((side) => {
     for (let r = 1; r <= 7; r++) {
       for (let c = 1; c <= 5; c++) {
-        // Creates ID like "P1-R1C1"
         const id = `${side}1-R${r}C${c}`;
         values.push([id, side, r, c, "available"]);
       }
     }
   });
 
-  // Insert them all at once (IGNORE prevents duplicates if you run it twice)
   const sql =
     "INSERT IGNORE INTO parking_slots (id, side, row_num, col_num, status) VALUES ?";
 
@@ -126,14 +115,11 @@ app.get("/api/setup-grid", (req, res) => {
   });
 });
 
-// API 4: Admin releases a slot
 app.post("/api/release", (req, res) => {
   const { id } = req.body;
 
-  // 1. Clear the slot
   const clearSlot = `UPDATE parking_slots SET status = 'available', userName = NULL, userEmail = NULL, checkIn = NULL, checkOut = NULL WHERE id = ?`;
 
-  // 2. Mark the most recent active booking for this slot as 'Completed'
   const updateHistory = `UPDATE booking_history SET status = 'Completed' WHERE slot_id = ? AND status = 'Active' ORDER BY history_id DESC LIMIT 1`;
 
   db.query(clearSlot, [id], (err) => {
@@ -146,7 +132,6 @@ app.post("/api/release", (req, res) => {
   });
 });
 
-// API 5: Admin updates slot statuses (Maintenance, Accessible, etc.)
 app.post("/api/update-slots", (req, res) => {
   const { ids, status } = req.body;
   if (!ids || ids.length === 0)
@@ -159,13 +144,11 @@ app.post("/api/update-slots", (req, res) => {
   });
 });
 
-// API 6: Admin adds new slots to the grid
 app.post("/api/add-slots", (req, res) => {
   const { newSlots } = req.body;
   if (!newSlots || newSlots.length === 0)
     return res.json({ message: "No slots to add" });
 
-  // Format data for MySQL: [ [id, side, r, c, status], [id, side, r, c, status] ]
   const values = newSlots.map((s) => [s.id, s.side, s.r, s.c, s.status]);
   const query = `INSERT IGNORE INTO parking_slots (id, side, row_num, col_num, status) VALUES ?`;
 
@@ -175,7 +158,6 @@ app.post("/api/add-slots", (req, res) => {
   });
 });
 
-// API 7: Admin deletes slots from the grid
 app.post("/api/delete-slots", (req, res) => {
   const { ids } = req.body;
   if (!ids || ids.length === 0)
@@ -188,12 +170,9 @@ app.post("/api/delete-slots", (req, res) => {
   });
 });
 
-// API 8: User cancels their own booking in the Database
 app.post("/api/user-cancel", (req, res) => {
   const { id } = req.body;
-  // 1. Make the slot available again in the grid
   const clearSlot = `UPDATE parking_slots SET status = 'available', userName = NULL, userEmail = NULL, checkIn = NULL, checkOut = NULL WHERE id = ?`;
-  // 2. Mark the history record as 'Cancelled' instead of 'Active'
   const updateHistory = `UPDATE booking_history SET status = 'Cancelled' WHERE slot_id = ? AND status = 'Active' ORDER BY history_id DESC LIMIT 1`;
   db.beginTransaction((err) => {
     if (err) return res.status(500).json({ error: err.message });
@@ -219,7 +198,6 @@ app.post("/api/user-cancel", (req, res) => {
   });
 });
 
-// API 9: Fetch a specific user's history
 app.get("/api/history/:email", (req, res) => {
   const email = req.params.email;
   const query = `SELECT * FROM booking_history WHERE user_email = ? ORDER BY history_id DESC`;
@@ -230,11 +208,6 @@ app.get("/api/history/:email", (req, res) => {
   });
 });
 
-// ==========================================
-// USER AUTHENTICATION APIs
-// ==========================================
-
-// API 10: User Signup
 app.post("/api/signup", (req, res) => {
   const { name, email, password, carModel, licensePlate } = req.body;
 
@@ -245,7 +218,6 @@ app.post("/api/signup", (req, res) => {
     [name, email, password, carModel, licensePlate],
     (err, results) => {
       if (err) {
-        // MySQL will throw this specific error if the email already exists!
         if (err.code === "ER_DUP_ENTRY") {
           return res
             .status(400)
@@ -258,7 +230,6 @@ app.post("/api/signup", (req, res) => {
   );
 });
 
-// API 11: User Login
 app.post("/api/login", (req, res) => {
   const { email, password } = req.body;
 
@@ -267,7 +238,6 @@ app.post("/api/login", (req, res) => {
   db.query(query, [email, password], (err, results) => {
     if (err) return res.status(500).json({ error: err.message });
 
-    // If results.length is greater than 0, it means a matching user was found!
     if (results.length > 0) {
       const user = results[0];
       res.json({
@@ -280,15 +250,12 @@ app.post("/api/login", (req, res) => {
         },
       });
     } else {
-      // 401 is the official internet code for "Unauthorized"
       res.status(401).json({ error: "Invalid email or password." });
     }
   });
 });
 
-// API 12: Admin Audit Log (Fetches ALL history)
 app.get('/api/admin/all-history', (req, res) => {
-    // Fetch the 50 most recent actions so the admin can see cancellations
     const query = `SELECT * FROM booking_history ORDER BY history_id DESC LIMIT 50`;
     
     db.query(query, (err, results) => {
@@ -297,9 +264,26 @@ app.get('/api/admin/all-history', (req, res) => {
     });
 });
 
+app.post('/api/update-payment', (req, res) => {
+  const { id, payment_id, penalty_amount, status } = req.body;
+  
+  const sql = `
+    UPDATE booking_history 
+    SET payment_status = ?, 
+        payment_id = ?, 
+        amount = amount + ? 
+    WHERE slot_id = ? AND status = 'Active'
+  `;
+  
+  db.query(sql, [status, payment_id, penalty_amount, id], (err, result) => {
+    if (err) {
+      console.error("Error updating payment:", err);
+      return res.status(500).json({ error: "Database error" });
+    }
+    res.status(200).json({ message: "Payment status updated successfully" });
+  });
+});
 
-// Start the Server
-// This tells the app: "Use Render's assigned port, OR 3000 if running locally"
 const PORT = process.env.PORT || 3000;
 
 app.listen(PORT, '0.0.0.0', () => {
