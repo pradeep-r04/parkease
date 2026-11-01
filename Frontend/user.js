@@ -23,6 +23,9 @@ async function render() {
     const dbData = await response.json();
     liveSlots = dbData.map((s) => ({ ...s, r: s.row_num, c: s.col_num }));
 
+    // 1. Check if the user is verified for accessible parking
+    const needsAccessible = localStorage.getItem("needsAccessible") === "true";
+
     ["P", "S"].forEach((side) => {
       const el = document.getElementById("u_grid" + side);
       if (!el) return;
@@ -39,7 +42,12 @@ async function render() {
             cell.id = `slot-id-${slot.id}`;
 
             let displayStatus = slot.status;
-            if (slot.id === currentSelection && slot.status === "available") {
+            
+            // 2. Define if this specific spot can be booked by this user
+            const canBook = slot.status === "available" || (slot.status === "disabled-spot" && needsAccessible);
+
+            // 3. Allow it to highlight green ("selected") if it is a valid choice
+            if (slot.id === currentSelection && canBook) {
               displayStatus = "selected";
             }
 
@@ -55,7 +63,8 @@ async function render() {
               cell.innerHTML = `<span class="slot-empty-text">${slot.id}</span>`;
             }
 
-            if (slot.status === "available" || displayStatus === "selected") {
+            // 4. Apply the click lock based on the new logic
+            if (canBook || displayStatus === "selected") {
               cell.onclick = () => toggleSelect(slot.id);
               cell.style.cursor = "pointer";
             } else {
@@ -374,7 +383,7 @@ function saveProfile() {
   localStorage.setItem("userName", name);
   localStorage.setItem("userCar", document.getElementById("profCar").value);
   localStorage.setItem("userPlate", document.getElementById("profPlate").value);
-
+  localStorage.setItem("needsAccessible", document.getElementById("profHandicap").checked);
   const profileDisplay = document.getElementById("userProfileEmail");
   if (profileDisplay) profileDisplay.innerText = name;
 
