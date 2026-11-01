@@ -365,6 +365,8 @@ function switchUserView(viewName) {
       localStorage.getItem("userCar") || "";
     document.getElementById("profPlate").value =
       localStorage.getItem("userPlate") || "";
+    document.getElementById("profHandicap").checked = 
+      localStorage.getItem("needsAccessible") === "true";
   } else if (viewName === "reserve") {
     if (title) title.innerText = "Booking Portal";
     if (subtitle) subtitle.innerText = "Select your space and duration below.";
