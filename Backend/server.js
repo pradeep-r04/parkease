@@ -115,19 +115,30 @@ app.get("/api/setup-grid", (req, res) => {
   });
 });
 
+// API 4: Admin releases a slot
 app.post("/api/release", (req, res) => {
   const { id } = req.body;
 
+  // Get the exact current time the button was clicked
+  const now = new Date();
+  const actualOutTime = now.toLocaleTimeString('en-GB', { 
+      hour: '2-digit', 
+      minute: '2-digit', 
+      timeZone: 'Asia/Kolkata' 
+  });
+
+  // 1. Clear the slot in the live grid
   const clearSlot = `UPDATE parking_slots SET status = 'available', userName = NULL, userEmail = NULL, checkIn = NULL, checkOut = NULL WHERE id = ?`;
 
-  const updateHistory = `UPDATE booking_history SET status = 'Completed' WHERE slot_id = ? AND status = 'Active' ORDER BY history_id DESC LIMIT 1`;
+  // 2. Mark as Completed AND update the checkout time to the exact current time
+  const updateHistory = `UPDATE booking_history SET status = 'Completed', check_out = ? WHERE slot_id = ? AND status = 'Active' ORDER BY history_id DESC LIMIT 1`;
 
   db.query(clearSlot, [id], (err) => {
     if (err) return res.status(500).json({ error: err.message });
 
-    db.query(updateHistory, [id], (err) => {
+    db.query(updateHistory, [actualOutTime, id], (err) => {
       if (err) console.log("History update failed, but slot was cleared.");
-      res.json({ message: "Slot released and history updated!" });
+      res.json({ message: "Slot released and history updated with exact checkout time!" });
     });
   });
 });
