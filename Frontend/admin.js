@@ -8,7 +8,6 @@ function adminLogout() {
 }
 // -------------------------
 
-// Live slots array (pulled from DB)
 let slots = [];
 let selectedEmpty = [];
 let selectedSlots = [];
@@ -122,11 +121,8 @@ function updateDashboard() {
 
 async function render() {
   try {
-    // 1. Fetch live data from MySQL
     const response = await fetch("https://parkease-backend-m234.onrender.com/api/slots");
     const dbData = await response.json();
-
-    // Map database columns (row_num, col_num) to local logic (r, c)
     slots = dbData.map((s) => ({ ...s, r: s.row_num, c: s.col_num }));
 
     ["P", "S"].forEach((side) => {
@@ -170,9 +166,6 @@ async function render() {
       }
     });
 
-    // ==========================================
-    // NEW: FETCH REAL HISTORY FOR ADMIN TABLE
-    // ==========================================
     const historyRes = await fetch(
       "https://parkease-backend-m234.onrender.com/api/admin/all-history",
     );
@@ -182,7 +175,6 @@ async function render() {
     const empty = document.getElementById("emptyMsg");
 
     if (table) {
-      // Update the badge to count only "Active" bookings
       const activeCount = historyData.filter(
         (h) => h.status === "Active",
       ).length;
@@ -199,27 +191,22 @@ async function render() {
         historyData.forEach((h) => {
           const row = document.createElement("tr");
 
-          // Format the date properly
           let d = new Date(h.booking_date);
           let formattedDate = d.toLocaleDateString();
 
-          // Determine what to show in the Action column
           let statusHtml = "";
           if (h.status === "Active") {
-            // WE NOW PASS THE CHECKOUT TIME TO THE RELEASE FUNCTION FOR PENALTY CALCULATION
-            statusHtml = `<button onclick="release('${h.slot_id}', '${h.check_out}')" class="btn-release">Release</button>`;
+            statusHtml = `<button onclick="release('${h.slot_id}', '${h.check_in}', '${h.check_out}')" class="btn-release">Release</button>`;
           } else {
             let color = h.status === "Completed" ? "#34d399" : "#f87171";
             statusHtml = `<span style="color: ${color}; font-weight: 900; font-size: 10px; text-transform: uppercase;">${h.status}</span>`;
           }
 
-          // Payment Status Badge Injection
           let payBadgeColor = h.payment_status === 'PAID' ? '#10b981' : '#f59e0b';
           let payBadge = `<span style="background: ${payBadgeColor}; color: #fff; padding: 2px 6px; border-radius: 4px; font-size: 9px; font-weight: bold; margin-top: 4px; display: inline-block;">
               ${h.payment_status || 'PENDING'} - ₹${h.amount || '0'}
           </span>`;
 
-          // Draw the row
           row.innerHTML = `
             <td>
                 <p class="td-slot-id">${h.slot_id}</p>
@@ -306,7 +293,6 @@ function show(mode) {
     .classList.toggle("hidden", mode !== "edit");
 }
 
-// Sends New Slots to MySQL
 async function saveNew() {
   let newSlotsToDb = [];
   if (selectedEmpty.length === 1) {
@@ -343,10 +329,9 @@ async function saveNew() {
   }
   selectedEmpty = [];
   updatePanel();
-  render(); // Fetch fresh data from DB
+  render(); 
 }
 
-// Sends Status Updates to MySQL (e.g., setting a spot to Maintenance)
 async function update() {
   const newStatus = document.getElementById("statusSelect").value;
   await fetch("https://parkease-backend-m234.onrender.com/api/update-slots", {
@@ -360,7 +345,6 @@ async function update() {
   render();
 }
 
-// Deletes Slots from MySQL
 async function remove() {
   if (!confirm("Are you sure you want to permanently delete these slots?"))
     return;
@@ -376,35 +360,33 @@ async function remove() {
   render();
 }
 
-// Upgraded Release function with Overtime Penalty
-async function release(id, checkOutTime) {
-  // 1. Calculate Time Difference
+async function release(id, checkInTime, checkOutTime) {
   const now = new Date();
   
-  // Convert "14:30" (checkOutTime) into today's actual time
+  const [inHour, inMin] = checkInTime.split(':').map(Number);
   const [outHour, outMin] = checkOutTime.split(':').map(Number);
+  
   const expectedOut = new Date();
   expectedOut.setHours(outHour, outMin, 0, 0);
 
-  let confirmMessage = `Are you sure you want to release slot ${id}?`;
-
-  // 2. Check if they are late
-  if (now > expectedOut) {
-    const diffMs = now - expectedOut;
-    const diffMins = Math.floor(diffMs / 60000); // Convert to minutes
-    
-    // Calculate penalty: e.g., Rs 50 for every started hour they are late
-    const penaltyHours = Math.ceil(diffMins / 60);
-    const penaltyAmount = penaltyHours * 50; 
-
-    // Update the prompt for the admin
-    confirmMessage = `🚨 OVERTIME WARNING! 🚨\n\nThis vehicle is ${diffMins} minutes late.\nPenalty Due: ₹${penaltyAmount}\n\nPlease collect ₹${penaltyAmount} (Cash/UPI) at the gate before clicking OK to release.`;
+  if (outHour < inHour) {
+    expectedOut.setDate(expectedOut.getDate() + 1);
   }
 
-  // 3. Confirm with Admin
-  if (!confirm(confirmMessage)) return; // Stop if admin clicks Cancel
+  let confirmMessage = `Are you sure you want to release slot ${id}?`;
 
-  // 4. Send the release command to your backend
+  if (now > expectedOut) {
+    const diffMs = now - expectedOut;
+    const diffMins = Math.floor(diffMs / 60000); 
+    const penaltyAmount = Math.round(diffMins * (50 / 60));
+
+    if (penaltyAmount > 0) {
+      confirmMessage = `🚨 OVERTIME WARNING! 🚨\n\nThis vehicle is ${diffMins} minutes late.\nPenalty Due: ₹${penaltyAmount}\n\nPlease verify payment before clicking OK to release.`;
+    }
+  }
+
+  if (!confirm(confirmMessage)) return; 
+
   try {
     await fetch("https://parkease-backend-m234.onrender.com/api/release", {
       method: "POST",
@@ -417,7 +399,6 @@ async function release(id, checkOutTime) {
   }
 }
 
-// --- CLOCK & LIVE POLLING ---
 setInterval(() => {
   const clock = document.getElementById("liveClock");
   if (clock) {
@@ -428,7 +409,6 @@ setInterval(() => {
   }
 }, 1000);
 
-// Silently refresh the grid every 3 seconds
 setInterval(() => {
   render();
 }, 3000);
@@ -436,7 +416,6 @@ setInterval(() => {
 initCharts();
 render();
 
-// --- PDF REPORT GENERATION (Updated with Exact Amount Tracking) ---
 async function generatePDF() {
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF();
@@ -444,13 +423,11 @@ async function generatePDF() {
   const dateString = now.toLocaleString();
 
   try {
-    // 1. FETCH FULL HISTORY FIRST
     const historyRes = await fetch(
       "https://parkease-backend-m234.onrender.com/api/admin/all-history",
     );
     const historyData = await historyRes.json();
 
-    // 2. Set up our Revenue "Buckets"
     let totalRevenue = 0;
     let monthlyRevenue = 0;
     let todayRevenue = 0;
@@ -460,7 +437,6 @@ async function generatePDF() {
     const currentYear = now.getFullYear();
     const currentDate = now.getDate();
 
-    // 3. Calculate all the different revenue types directly from the exact Database 'Amount'
     historyData.forEach(booking => {
       if (booking.payment_status === 'PAID') {
         const bookingCost = parseFloat(booking.amount) || 0;
@@ -468,31 +444,26 @@ async function generatePDF() {
 
         const bDate = new Date(booking.booking_date);
 
-        // Add to Today's Revenue if dates match exactly
         if (bDate.getDate() === currentDate && bDate.getMonth() === currentMonth && bDate.getFullYear() === currentYear) {
             todayRevenue += bookingCost;
         }
 
-        // Add to Monthly Revenue if month and year match
         if (bDate.getMonth() === currentMonth && bDate.getFullYear() === currentYear) {
             monthlyRevenue += bookingCost;
         }
 
-        // Add to Active/Current Revenue if the car is currently parked
         if (booking.status === 'Active') {
             activeRevenue += bookingCost;
         }
       }
     });
 
-    // 4. Calculate Live Executive Summary from the grid
     const booked = slots.filter((s) => s.status === "booked");
     const available = slots.filter((s) => s.status === "available");
     const disabled = slots.filter(
       (s) => s.status === "not-available" || s.status === "disabled-spot",
     );
 
-    // 5. Draw the Header and Summary
     doc.setFontSize(22);
     doc.setTextColor(15, 23, 42);
     doc.text("ParkEase Enterprise Report", 14, 20);
@@ -507,7 +478,6 @@ async function generatePDF() {
     doc.setFont(undefined, "bold");
     doc.text("Executive Summary", 14, 45);
 
-    // Grid Status
     doc.setFontSize(11);
     doc.setFont(undefined, "normal");
     doc.text(`Total Capacity: ${slots.length}`, 14, 53);
@@ -515,16 +485,14 @@ async function generatePDF() {
     doc.text(`Available Spots: ${available.length}`, 14, 59);
     doc.text(`Disabled/Maintenance Spots: ${disabled.length}`, 90, 59);
 
-    // Detailed Revenue Breakdown
     doc.setFont(undefined, "bold");
-    doc.setTextColor(16, 185, 129); // Professional Green Color
+    doc.setTextColor(16, 185, 129); 
     doc.text(`Today's Revenue: Rs. ${todayRevenue}`, 14, 70);
     doc.text(`This Month's Revenue: Rs. ${monthlyRevenue}`, 90, 70);
     doc.text(`Current Active Revenue: Rs. ${activeRevenue}`, 14, 76);
     doc.text(`Total Lifetime Revenue: Rs. ${totalRevenue}`, 90, 76);
     doc.setTextColor(0);
 
-    // 6. Map the database history into PDF table rows (Now includes Amount and Payment columns)
     const reportData = historyData.map((h) => {
       let d = new Date(h.booking_date);
       let dateStr = d.toLocaleDateString();
@@ -541,7 +509,6 @@ async function generatePDF() {
       ];
     });
 
-    // 7. Draw the Table (Expanded to include financial columns)
     doc.autoTable({
       startY: 85,
       head: [
@@ -554,7 +521,6 @@ async function generatePDF() {
       styles: { fontSize: 9 },
     });
 
-    // 8. Save the PDF
     doc.save(`ParkEase_Enterprise_Report_${now.getTime()}.pdf`);
   } catch (err) {
     console.error("PDF Generation failed:", err);

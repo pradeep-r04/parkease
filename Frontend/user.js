@@ -134,15 +134,13 @@ async function confirmBooking() {
     amount: calculatedPrice
   };
 
-  // RAZORPAY INTEGRATION HOOK
   var options = {
-    key: "rzp_test_Ttlf1WLNbYHACW", // Update with your razorpay key
-    amount: calculatedPrice * 100, // Razorpay calculates in paise
+    key: "rzp_test_Ttlf1WLNbYHACW", 
+    amount: calculatedPrice * 100, 
     currency: "INR",
     name: "ParkEase",
     description: `Booking for ${currentSelection}`,
     handler: async function (response) {
-      // Execute the backend save ONLY after successful payment
       bookingData.payment_id = response.razorpay_payment_id;
       bookingData.payment_status = "PAID";
 
@@ -223,18 +221,29 @@ async function updateHistory() {
       let payColor = h.payment_status === 'PAID' ? '#10b981' : '#f59e0b';
       
       if (h.status === "Active") {
-        // 1. Calculate if the user is late
         const now = new Date();
+        const [inHour, inMin] = h.check_in.split(':').map(Number);
         const [outHour, outMin] = h.check_out.split(':').map(Number);
+        
         const expectedOut = new Date();
         expectedOut.setHours(outHour, outMin, 0, 0);
+
+        if (outHour < inHour) {
+          expectedOut.setDate(expectedOut.getDate() + 1);
+        }
 
         let penaltyWarning = "";
         if (now > expectedOut) {
           const diffMins = Math.floor((now - expectedOut) / 60000);
-          const penaltyHours = Math.ceil(diffMins / 60);
-          const penaltyAmount = penaltyHours * 50;
-          penaltyWarning = `<div style="color: #ef4444; font-size: 11px; margin-top: 5px; font-weight: bold;"><i class="fas fa-exclamation-triangle"></i> Late Penalty: ₹${penaltyAmount} due at gate</div>`;
+          const penaltyAmount = Math.round(diffMins * (50 / 60)); 
+          
+          if (penaltyAmount > 0) {
+            penaltyWarning = `
+              <div style="color: #ef4444; font-size: 11px; margin-top: 5px; font-weight: bold; display: flex; align-items: center; justify-content: flex-start; gap: 8px;">
+                <span><i class="fas fa-exclamation-triangle"></i> Late Penalty: ₹${penaltyAmount}</span>
+                <button onclick="payPenalty('${h.slot_id}', ${penaltyAmount})" style="background: #ef4444; color: white; border: none; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 9px; font-weight: bold;">Pay Online</button>
+              </div>`;
+          }
         }
 
         activeTable.innerHTML += `
@@ -273,6 +282,47 @@ async function updateHistory() {
   } catch (err) {
     console.error("Database History Sync Failed:", err);
   }
+}
+
+function payPenalty(slotId, amount) {
+  const userEmail = localStorage.getItem("userEmail");
+  const driverName = localStorage.getItem("userName") || "User";
+
+  var options = {
+    key: "rzp_test_Ttlf1WLNbYHACW",
+    amount: amount * 100, 
+    currency: "INR",
+    name: "ParkEase Penalty",
+    description: `Overtime Penalty for ${slotId}`,
+    handler: async function (response) {
+      try {
+        const res = await fetch("https://parkease-backend-m234.onrender.com/api/update-payment", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ 
+            id: slotId, 
+            payment_id: response.razorpay_payment_id,
+            penalty_amount: amount,
+            status: "PAID"
+          }),
+        });
+
+        if (res.ok) {
+          alert(`Penalty of ₹${amount} Paid Successfully!`);
+          updateHistory(); 
+        } else {
+          alert("Payment succeeded, but database update failed.");
+        }
+      } catch (err) {
+        console.error("Backend error:", err);
+      }
+    },
+    prefill: { name: driverName, email: userEmail },
+    theme: { color: "#ef4444" }
+  };
+  
+  var rzp1 = new Razorpay(options);
+  rzp1.open();
 }
 
 // ==========================================
@@ -360,7 +410,6 @@ window.onload = () => {
   const email = localStorage.getItem("userEmail");
   const emailDisplay = document.getElementById("userProfileEmail");
 
-  // 1. GUEST vs USER UI
   if (!isLoggedIn) {
     if (emailDisplay) emailDisplay.innerText = "Guest User";
 
@@ -381,7 +430,6 @@ window.onload = () => {
     else if (email && emailDisplay) emailDisplay.innerText = email;
   }
 
-  // 2. SHOW LOCATION & SMART HANDOFF
   const urlParams = new URLSearchParams(window.location.search);
   const loc = urlParams.get("loc");
   if (loc) {
@@ -397,7 +445,6 @@ window.onload = () => {
     updateTotal();
   }
 
-  // 3. ROUTE TO TAB
   if (!isLoggedIn) switchUserView("reserve");
   else if (!savedName) switchUserView("profile");
   else switchUserView("reserve");
