@@ -278,7 +278,6 @@ app.get('/api/admin/all-history', (req, res) => {
 app.post('/api/update-payment', (req, res) => {
   const { id, payment_id, penalty_amount, status } = req.body;
   
-  // 1. Calculate new checkout time: Current time + 5 minutes grace period
   const now = new Date();
   now.setMinutes(now.getMinutes() + 5);
   const newCheckOut = now.toLocaleTimeString('en-GB', { 
@@ -287,7 +286,11 @@ app.post('/api/update-payment', (req, res) => {
       timeZone: 'Asia/Kolkata' 
   });
   
-// 2. Update amount AND extend the check_out time so they are no longer "late"
+  // 1. Automatically fix the database columns to prevent crashes
+  db.query("ALTER TABLE booking_history MODIFY payment_status VARCHAR(50)", () => {});
+  db.query("ALTER TABLE booking_history MODIFY amount DECIMAL(10,2)", () => {});
+
+  // 2. Safely update the payment 
   const sql = `
     UPDATE booking_history 
     SET payment_status = ?, 
