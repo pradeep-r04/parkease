@@ -287,12 +287,12 @@ app.post('/api/update-payment', (req, res) => {
       timeZone: 'Asia/Kolkata' 
   });
   
-  // 2. Update amount AND extend the check_out time so they are no longer "late"
+// 2. Update amount AND extend the check_out time so they are no longer "late"
   const sql = `
     UPDATE booking_history 
     SET payment_status = ?, 
         payment_id = ?, 
-        amount = amount + ?,
+        amount = CAST(amount AS DECIMAL(10,2)) + ?,
         check_out = ?
     WHERE slot_id = ? AND status = 'Active'
   `;
