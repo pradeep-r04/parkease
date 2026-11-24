@@ -13,7 +13,7 @@ app.use(cors({
 
 app.use(express.json());
 
-const db = mysql.createConnection({
+const db = mysql.createPool({
     host: process.env.DB_HOST,
     user: process.env.DB_USER,
     password: process.env.DB_PASSWORD,
@@ -21,15 +21,21 @@ const db = mysql.createConnection({
     port: process.env.DB_PORT,
     ssl: {
         rejectUnauthorized: false
-    }
+    },
+    waitForConnections: true,
+    connectionLimit: 10,
+    queueLimit: 0,
+    enableKeepAlive: true,
+    keepAliveInitialDelay: 0
 });
 
-db.connect((err) => {
+db.getConnection((err, connection) => {
   if (err) {
     console.error("❌ Error connecting to ParkEase MySQL Database:", err.message);
     return;
   }
-  console.log("✅ Connected to ParkEase MySQL Database!");
+  console.log("✅ Connected to ParkEase MySQL Database Pool!");
+  connection.release();
 });
 
 app.get("/api/slots", (req, res) => {
@@ -57,38 +63,52 @@ app.post("/api/book", (req, res) => {
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'Active')
     `;
 
-  db.beginTransaction((err) => {
+  db.getConnection((err, connection) => {
     if (err) return res.status(500).json({ error: err.message });
 
-    db.query(
-      updateSlotQuery,
-      [userName, userEmail, checkIn, checkOut, id],
-      (err) => {
-        if (err)
-          return db.rollback(() =>
-            res.status(500).json({ error: err.message }),
-          );
+    connection.beginTransaction((err) => {
+      if (err) {
+        connection.release();
+        return res.status(500).json({ error: err.message });
+      }
 
-        db.query(
-          insertHistoryQuery,
-          [id, userEmail, bookingDate, checkIn, checkOut, amount, payment_id, payment_status],
-          (err) => {
-            if (err)
-              return db.rollback(() =>
-                res.status(500).json({ error: err.message }),
-              );
-
-            db.commit((err) => {
-              if (err)
-                return db.rollback(() =>
-                  res.status(500).json({ error: err.message }),
-                );
-              res.json({ message: "Booking and History saved!" });
+      connection.query(
+        updateSlotQuery,
+        [userName, userEmail, checkIn, checkOut, id],
+        (err) => {
+          if (err) {
+            return connection.rollback(() => {
+              connection.release();
+              res.status(500).json({ error: err.message });
             });
-          },
-        );
-      },
-    );
+          }
+
+          connection.query(
+            insertHistoryQuery,
+            [id, userEmail, bookingDate, checkIn, checkOut, amount, payment_id, payment_status],
+            (err) => {
+              if (err) {
+                return connection.rollback(() => {
+                  connection.release();
+                  res.status(500).json({ error: err.message });
+                });
+              }
+
+              connection.commit((err) => {
+                if (err) {
+                  return connection.rollback(() => {
+                    connection.release();
+                    res.status(500).json({ error: err.message });
+                  });
+                }
+                connection.release();
+                res.json({ message: "Booking and History saved!" });
+              });
+            }
+          );
+        }
+      );
+    });
   });
 });
 
@@ -119,7 +139,6 @@ app.get("/api/setup-grid", (req, res) => {
 app.post("/api/release", (req, res) => {
   const { id } = req.body;
 
-  // Get the exact current time the button was clicked
   const now = new Date();
   const actualOutTime = now.toLocaleTimeString('en-GB', { 
       hour: '2-digit', 
@@ -127,10 +146,7 @@ app.post("/api/release", (req, res) => {
       timeZone: 'Asia/Kolkata' 
   });
 
-  // 1. Clear the slot in the live grid
   const clearSlot = `UPDATE parking_slots SET status = 'available', userName = NULL, userEmail = NULL, checkIn = NULL, checkOut = NULL WHERE id = ?`;
-
-  // 2. Mark as Completed AND update the checkout time to the exact current time
   const updateHistory = `UPDATE booking_history SET status = 'Completed', check_out = ? WHERE slot_id = ? AND status = 'Active' ORDER BY history_id DESC LIMIT 1`;
 
   db.query(clearSlot, [id], (err) => {
@@ -185,23 +201,43 @@ app.post("/api/user-cancel", (req, res) => {
   const { id } = req.body;
   const clearSlot = `UPDATE parking_slots SET status = 'available', userName = NULL, userEmail = NULL, checkIn = NULL, checkOut = NULL WHERE id = ?`;
   const updateHistory = `UPDATE booking_history SET status = 'Cancelled' WHERE slot_id = ? AND status = 'Active' ORDER BY history_id DESC LIMIT 1`;
-  db.beginTransaction((err) => {
+
+  db.getConnection((err, connection) => {
     if (err) return res.status(500).json({ error: err.message });
-    db.query(clearSlot, [id], (err) => {
-      if (err)
-        return db.rollback(() => res.status(500).json({ error: err.message }));
-      db.query(updateHistory, [id], (err) => {
-        if (err)
-          return db.rollback(() =>
-            res.status(500).json({ error: err.message }),
-          );
-        db.commit((err) => {
-          if (err)
-            return db.rollback(() =>
-              res.status(500).json({ error: err.message }),
-            );
-          res.json({
-            message: "Database: Slot cleared and History marked as Cancelled!",
+
+    connection.beginTransaction((err) => {
+      if (err) {
+        connection.release();
+        return res.status(500).json({ error: err.message });
+      }
+
+      connection.query(clearSlot, [id], (err) => {
+        if (err) {
+          return connection.rollback(() => {
+            connection.release();
+            res.status(500).json({ error: err.message });
+          });
+        }
+
+        connection.query(updateHistory, [id], (err) => {
+          if (err) {
+            return connection.rollback(() => {
+              connection.release();
+              res.status(500).json({ error: err.message });
+            });
+          }
+
+          connection.commit((err) => {
+            if (err) {
+              return connection.rollback(() => {
+                connection.release();
+                res.status(500).json({ error: err.message });
+              });
+            }
+            connection.release();
+            res.json({
+              message: "Database: Slot cleared and History marked as Cancelled!",
+            });
           });
         });
       });
@@ -237,7 +273,7 @@ app.post("/api/signup", (req, res) => {
         return res.status(500).json({ error: err.message });
       }
       res.json({ message: "Signup successful!", userId: results.insertId });
-    },
+    }
   );
 });
 
