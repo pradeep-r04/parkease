@@ -196,7 +196,7 @@ async function render() {
 
           let statusHtml = "";
           if (h.status === "Active") {
-            statusHtml = `<button onclick="release('${h.slot_id}', '${h.check_in}', '${h.check_out}')" class="btn-release">Release</button>`;
+            statusHtml = `<button onclick="release('${h.slot_id}', '${h.check_in}', '${h.check_out}', '${h.booking_date}')" class="btn-release">Release</button>`;
           } else {
             let color = h.status === "Completed" ? "#34d399" : "#f87171";
             statusHtml = `<span style="color: ${color}; font-weight: 900; font-size: 10px; text-transform: uppercase;">${h.status}</span>`;
@@ -369,13 +369,13 @@ async function remove() {
   render();
 }
 
-async function release(id, checkInTime, checkOutTime) {
+async function release(id, checkInTime, checkOutTime, bookingDate) {
   const now = new Date();
   
   const [inHour, inMin] = checkInTime.split(':').map(Number);
   const [outHour, outMin] = checkOutTime.split(':').map(Number);
   
-  const expectedOut = new Date();
+  const expectedOut = new Date(bookingDate);
   expectedOut.setHours(outHour, outMin, 0, 0);
 
   if (outHour < inHour) {

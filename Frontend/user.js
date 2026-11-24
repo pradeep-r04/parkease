@@ -234,7 +234,7 @@ async function updateHistory() {
         const [inHour, inMin] = h.check_in.split(':').map(Number);
         const [outHour, outMin] = h.check_out.split(':').map(Number);
         
-        const expectedOut = new Date();
+        const expectedOut = new Date(h.booking_date);
         expectedOut.setHours(outHour, outMin, 0, 0);
 
         if (outHour < inHour) {
